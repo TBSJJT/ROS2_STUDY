@@ -1,0 +1,63 @@
+stm32_bridge:
+  ros__parameters:
+    port: /dev/ttyUSB0
+    baud: 115200
+
+    cmd_vel_topic: /cmd_vel
+    odom_topic: /odom
+    imu_topic: /imu/data_raw
+
+    odom_frame: odom
+    base_frame: base_footprint
+    imu_frame: imu_link
+    publish_odom_tf: true
+
+    tx_rate: 50.0
+    cmd_timeout: 0.5
+    feedback_timeout: 0.5
+    reconnect_period: 1.0
+    startup_delay: 0.2
+    startup_stop_frames: 5
+
+    max_linear_x: 1.5
+    max_linear_y: 1.5
+    max_angular_z: 6.0
+
+    accel_lsb_per_g: 4096.0
+    gyro_lsb_per_dps: 131.0
+    # 使用 IMU Z 轴角速度积分 odom yaw
+    use_imu_wz_for_odom: true
+
+    # ROS 规定逆时针为正。
+    # 若逆时针转动时 yaw 减小，改成 -1.0。
+    imu_z_sign: 1.0
+
+    # 下位机已完成零偏标定，因此保持 0.0。
+    gyro_z_offset_radps: 0.0
+
+    # 静止角速度死区，只过滤小抖动，不是二次标定。
+    gyro_z_deadband: 0.02
+
+    # 每秒打印一次完整状态
+    status_period: 1.0
+    print_imu_raw: true
+
+    debug_tx: false
+    debug_rx: false
+    
+    # 使用 IMU Z 轴角速度积分 odom yaw
+    use_imu_wz_for_odom: true
+
+    # ROS 约定：逆时针为正。
+    # 若实车逆时针转动时 yaw 反而减小，改成 -1.0。
+    imu_z_sign: 1.0
+
+    # 静止时小于该值的 Z 轴角速度直接置零
+    gyro_z_deadband: 0.02
+
+    # 每秒打印一次 target、wheel、imu、yaw、odom 和统计
+    status_period: 1.0
+    print_imu_raw: true
+
+    debug_tx: false
+    debug_rx: false
