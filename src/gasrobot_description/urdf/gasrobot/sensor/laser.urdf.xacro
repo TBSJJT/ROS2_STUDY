@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro= "http://www.ros.org/wiki/xacro">
+    <xacro:include filename="$(find gasrobot_description)/urdf/gasrobot/mass_inertia.xacro"/>
+
+    <xacro:macro name="laser_xacro" params="xyz">
+        <!-- 雷达支架 -->
+        <link name="laserSupport_link">
+            <!-- 部件的外观描述 -->
+            <visual>
+                <!-- 沿着自己几何中心的偏移和旋转量 -->
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+                <!-- 几何形状 圆柱半径0.025m，高度0.1m -->
+                <geometry>
+                    <cylinder radius="0.025" length="0.1"/>
+                </geometry>
+                <!-- 材质和颜色描述 ：黑色 不透明-->
+                <material name="black">
+                    <color rgba="0.0 0.0 0.0 1.0"/>
+                </material>
+            </visual>
+            <collision>
+                <!-- 沿着自己几何中心的偏移和旋转量 -->
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+                <!-- 几何形状 圆柱半径0.025m，高度0.1m -->
+                <geometry>
+                    <cylinder radius="0.025" length="0.1"/>
+                </geometry>
+                <!-- 材质和颜色描述 ：黑色 不透明-->
+                <material name="black">
+                    <color rgba="0.0 0.0 0.0 1.0"/>
+                </material>               
+            </collision>
+
+            <xacro:cylinder_inertia m="0.1" r="0.025" h="0.1"/>
+
+        </link>     
+
+        <link name="laser_link">
+            <!-- 部件的外观描述 -->
+            <visual>
+                <!-- 沿着自己几何中心的偏移和旋转量 -->
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+                <!-- 几何形状 圆柱半径0.025m，高度0.1m -->
+                <geometry>
+                    <cylinder radius="0.025" length="0.035"/>
+                </geometry>
+                <!-- 材质和颜色描述 ：黑色 不透明-->
+                <material name="black">
+                    <color rgba="0.0 0.0 0.0 1.0"/>
+                </material>
+            </visual>
+            <collision>
+                <!-- 沿着自己几何中心的偏移和旋转量 -->
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+                <!-- 几何形状 圆柱半径0.025m，高度0.1m -->
+                <geometry>
+                    <cylinder radius="0.025" length="0.035"/>
+                </geometry>
+                <!-- 材质和颜色描述 ：黑色 不透明-->
+                <material name="black">
+                    <color rgba="0.0 0.0 0.0 1.0"/>
+                </material>
+            </collision>
+            <xacro:cylinder_inertia  m="0.1" r="0.025" h="0.035"/>
+        </link>
+
+        <!-- 雷达固定到支撑杆上 -->
+        <joint name="laserSupport_joint" type="fixed">
+            <parent link="laserSupport_link"/>
+            <child link="laser_link"/>
+            <origin xyz="0.0 0.0 0.05" rpy="0.0 0.0 0.0"/>
+        </joint>
+        <!-- 支撑杆固定在车上 -->
+        <joint name="laser_joint" type="fixed">
+            <parent link="base_link"/>
+            <child link="laserSupport_link"/>
+            <origin xyz="${xyz}" rpy="0.0 0.0 0.0"/>
+        </joint>
+    </xacro:macro>
+    
+</robot>

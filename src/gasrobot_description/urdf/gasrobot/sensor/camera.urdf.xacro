@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro= "http://www.ros.org/wiki/xacro">
+    <xacro:include filename="$(find gasrobot_description)/urdf/gasrobot/mass_inertia.xacro"/>
+
+    <xacro:macro name="camera_xacro" params="xyz">
+        <!-- 机器人的camera部件 -->
+        <link name="camera_link">
+            <!-- 部件的外观描述 -->
+            <visual>
+                <!-- 沿着自己几何中心的偏移和旋转量 -->
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+                <!-- 几何形状 -->
+                <geometry>
+                    <!-- 立方体 -->
+                    <box size="0.03 0.03 0.03"/>
+                </geometry>
+                <!-- 材质和颜色描述 -->
+                <material name="black">
+                    <color rgba="0.0 0.0 0.0 0.5"/>
+                </material>
+            </visual>
+            <collision>
+                <!-- 沿着自己几何中心的偏移和旋转量 -->
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+                <!-- 几何形状 -->
+                <geometry>
+                    <!-- 立方体 -->
+                    <box size="0.03 0.03 0.03"/>
+                </geometry>
+                <!-- 材质和颜色描述 -->
+                <material name="black">
+                    <color rgba="0.0 0.0 0.0 0.5"/>
+                </material>
+            </collision>
+            <!-- 0.03kg 宽度0.03m 高度0.03m 长度0.03m -->
+            <xacro:box_inertia m="0.03" w="0.03" h="0.03" d="0.03"/>
+        </link>
+
+        <!-- 机器人的关节,用于组合部件 -->
+        <joint name="camera_joint" type="fixed">
+            <parent link="base_link"/>
+            <child link="camera_link"/>
+            <origin xyz="${xyz}" rpy="0.0 0.0 0.0"/>
+        </joint>
+    </xacro:macro>
+    
+</robot>

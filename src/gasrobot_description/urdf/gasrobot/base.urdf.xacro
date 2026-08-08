@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro= "http://www.ros.org/wiki/xacro">
+    <xacro:include filename="$(find gasrobot_description)/urdf/gasrobot/mass_inertia.xacro"/>
+
+    <xacro:macro name="base_xacro" params="xyz">
+        <!-- 虚拟部件 -->
+        <link name="base_footprint"/>
+
+        <!-- 机器人的身体部分 -->
+        <link name="base_link">
+            <!-- 部件的外观描述 -->
+            <visual>
+                <!-- 沿着自己几何中心的偏移和旋转量 -->
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+                <!-- 几何形状 -->
+                <geometry>
+                    <!-- 立方体 -->
+                    <box size="${xyz}"/>                
+                </geometry>
+                <!-- 材质和颜色描述 -->
+                <material name="white">
+                    <color rgba="1.0 1.0 1.0 0.5"/>
+                </material>
+            </visual>
+            <collision>
+                <!-- 沿着自己几何中心的偏移和旋转量 -->
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+                <!-- 几何形状 -->
+                <geometry>
+                    <!-- 立方体 -->
+                    <box size="${xyz}"/>                
+                </geometry>
+                <!-- 材质和颜色描述 -->
+                <material name="white">
+                    <color rgba="1.0 1.0 1.0 0.5"/>
+                </material>                
+            </collision>
+            <xacro:box_inertia m="2" w="0.4" h="0.3" d="0.07"/>
+
+        </link>
+
+        
+        <joint name="base_footprint_joint" type="fixed">
+            <origin xyz="0.0 0.0 ${0.035 + 0.04 - 0.001}" rpy="0.0 0.0 0.0"/>
+            <parent link="base_footprint"/>
+            <child link="base_link"/>
+        </joint>
+    </xacro:macro>
+    
+</robot>

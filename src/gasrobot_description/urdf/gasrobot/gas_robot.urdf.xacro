@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro= "http://www.ros.org/wiki/xacro" name="gas_robot">
+
+<!-- 底盘 -->
+<xacro:include filename="$(find gasrobot_description)/urdf/gasrobot/base.urdf.xacro"/>
+<!-- 传感器 -->
+<xacro:include filename="$(find gasrobot_description)/urdf/gasrobot/sensor/camera.urdf.xacro"/>
+<xacro:include filename="$(find gasrobot_description)/urdf/gasrobot/sensor/imu.urdf.xacro"/>
+<xacro:include filename="$(find gasrobot_description)/urdf/gasrobot/sensor/laser.urdf.xacro"/>
+<!-- 执行器 -->
+<xacro:include filename="$(find gasrobot_description)/urdf/gasrobot/action/wheel.urdf.xacro"/>
+
+<xacro:base_xacro xyz="0.40 0.30 0.07"/>
+<xacro:imu_xacro xyz="0.0 0.0 0.05"/>
+<xacro:laser_xacro xyz="0.13 0.0 0.07"/>
+<xacro:camera_xacro xyz="0.20 0.0 0.05"/>
+<xacro:wheel_xacro wheel_name="LeftFront_wheel" xyz="0.20 0.18 -0.02"/>
+<xacro:wheel_xacro wheel_name="LeftBack_wheel" xyz="-0.20 0.18 -0.02"/>
+<xacro:wheel_xacro wheel_name="RightFront_wheel" xyz="0.20 -0.18 -0.02"/>
+<xacro:wheel_xacro wheel_name="RightBack_wheel" xyz="-0.20 -0.18 -0.02"/>
+
+</robot>
