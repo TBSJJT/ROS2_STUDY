@@ -3,7 +3,7 @@
 <package format="3">
   <name>gasrobot_gas</name>
   <version>0.1.0</version>
-  <description>Gas sensing drivers and processing components for GasRobot.</description>
+  <description>GasRobot 的气体传感器驱动与数据处理组件软件包。</description>
   <maintainer email="2799572363@qq.com">book</maintainer>
   <license>Apache-2.0</license>
   <buildtool_depend>ament_cmake</buildtool_depend>

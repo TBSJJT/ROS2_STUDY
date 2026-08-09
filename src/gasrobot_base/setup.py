@@ -26,7 +26,7 @@ setup(
     zip_safe=True,
     maintainer="book",
     maintainer_email="2799572363@qq.com",
-    description="STM32 serial bridge, odometry, IMU, and chassis control.",
+    description="STM32 串口桥接、里程计、IMU 与底盘控制。",
     license="Apache-2.0",
     tests_require=["pytest"],
     entry_points={

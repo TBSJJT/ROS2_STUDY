@@ -3,7 +3,7 @@
 <package format="3">
   <name>gasrobot_gas_mapping</name>
   <version>0.1.0</version>
-  <description>SLAM configuration, maps, and gas-mapping integration resources.</description>
+  <description>SLAM 配置、地图与气体建图集成资源软件包。</description>
   <maintainer email="2799572363@qq.com">book</maintainer>
   <license>Apache-2.0</license>
 

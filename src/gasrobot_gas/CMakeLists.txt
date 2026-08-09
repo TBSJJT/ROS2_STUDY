@@ -3,6 +3,5 @@ project(gasrobot_gas)
 
 find_package(ament_cmake REQUIRED)
 
-# Gas sensing drivers and processing nodes will be added here when hardware
-# interfaces are available.
+# 待硬件接口稳定后，在此添加气体传感器驱动与数据处理节点。
 ament_package()

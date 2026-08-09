@@ -1,4 +1,4 @@
-# Navigation prototypes
+# 导航原型程序
 
-Experimental perception scripts that are not installed as ROS executables live
-here until their topics, parameters, and runtime dependencies are stabilized.
+本目录保存尚未作为 ROS 可执行程序安装的实验性感知脚本。待其话题、参数和运行时依赖稳定后，
+再将代码整理为正式节点并迁入对应模块。

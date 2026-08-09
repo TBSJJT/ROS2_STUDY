@@ -71,7 +71,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "model",
                 default_value=default_model,
-                description="Robot URDF/Xacro model file.",
+                description="机器人 URDF/Xacro 模型文件。",
             ),
             DeclareLaunchArgument(
                 "use_sim_time",

@@ -30,7 +30,7 @@ setup(
     zip_safe=True,
     maintainer="book",
     maintainer_email="2799572363@qq.com",
-    description="Lidar safety and Nav2 configuration for GasRobot.",
+    description="GasRobot 激光雷达安全与 Nav2 配置。",
     license="Apache-2.0",
     entry_points={
         "console_scripts": [

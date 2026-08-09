@@ -144,7 +144,7 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 "mode",
                 default_value="slam",
-                description="Operating mode: hardware, slam, or nav.",
+                description="运行模式：hardware、slam 或 nav。",
             ),
             DeclareLaunchArgument("model", default_value=default_model),
             DeclareLaunchArgument("map", default_value=default_map),

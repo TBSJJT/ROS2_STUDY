@@ -3,7 +3,7 @@
 <package format="3">
   <name>gasrobot_base</name>
   <version>0.1.0</version>
-  <description>STM32 serial bridge, odometry, IMU, and chassis control for GasRobot.</description>
+  <description>GasRobot 的 STM32 串口桥接、里程计、IMU 与底盘控制软件包。</description>
   <maintainer email="2799572363@qq.com">book</maintainer>
   <license>Apache-2.0</license>
 

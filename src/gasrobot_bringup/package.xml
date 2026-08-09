@@ -3,7 +3,7 @@
 <package format="3">
   <name>gasrobot_bringup</name>
   <version>0.1.0</version>
-  <description>Top-level hardware, mapping, and navigation launch files for GasRobot.</description>
+  <description>GasRobot 硬件、建图与导航功能的顶层启动软件包。</description>
   <maintainer email="2799572363@qq.com">book</maintainer>
   <license>Apache-2.0</license>
 

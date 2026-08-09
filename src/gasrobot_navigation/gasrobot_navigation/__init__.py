@@ -1,1 +1,1 @@
-"""Navigation and safety nodes for GasRobot."""
+"""GasRobot 导航与安全节点。"""

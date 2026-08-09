@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-LaserScan velocity safety filter.
+LaserScan 速度安全过滤器。
 
-Input:
-    /cmd_vel       (normally from teleop or Nav2)
-Output:
-    /cmd_vel_safe  (connect the STM32 bridge to this topic)
+输入：
+    /cmd_vel       （通常来自遥控节点或 Nav2）
+输出：
+    /cmd_vel_safe  （STM32 桥接节点应订阅此话题）
 
-This node never drives the robot by itself. It only forwards a fresh command
-when LaserScan is fresh and the front sector is clear.
+本节点不会主动驱动机器人。只有在激光扫描数据有效且前方扇区无障碍物时，
+才会转发未超时的速度指令。
 """
 
 import math
@@ -199,4 +199,3 @@ def main(args=None) -> None:
 
 if __name__ == "__main__":
     main()
-

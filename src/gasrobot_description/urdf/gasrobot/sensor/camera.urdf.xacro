@@ -3,7 +3,7 @@
     <xacro:include filename="$(find gasrobot_description)/urdf/gasrobot/mass_inertia.xacro"/>
 
     <xacro:macro name="camera_xacro" params="xyz">
-        <!-- 机器人的camera部件 -->
+        <!-- 机器人的相机部件 -->
         <link name="camera_link">
             <!-- 部件的外观描述 -->
             <visual>

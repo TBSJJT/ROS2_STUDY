@@ -3,6 +3,6 @@ project(gasrobot_interfaces)
 
 find_package(ament_cmake REQUIRED)
 
-# Project-owned messages, services, and actions belong in this package.
-# Add rosidl generators when the first stable interface is defined.
+# 项目自有的消息、服务和动作接口统一放在此软件包中。
+# 定义首个稳定接口后，再添加 rosidl 生成规则。
 ament_package()

@@ -16,7 +16,7 @@ from ament_copyright.main import main
 import pytest
 
 
-# Remove the `skip` decorator once the source file(s) have a copyright header
+# 源文件补充版权声明后，移除 `skip` 装饰器。
 @pytest.mark.skip(reason='No copyright header has been placed in the generated source file.')
 @pytest.mark.copyright
 @pytest.mark.linter
