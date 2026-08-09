@@ -1,0 +1,19 @@
+# 目标：按顺序巡检地图中的一组位姿并监测目标气体。
+geometry_msgs/PoseStamped[] waypoints
+string target_gas
+float32 alarm_threshold
+bool stop_on_critical_risk
+---
+# 结果：报告任务是否完成以及任务期间发现的风险数量。
+bool success
+string message
+uint32 completed_waypoints
+uint32 risk_event_count
+---
+# 反馈：供界面显示当前进度和实时气体状态。
+uint32 current_waypoint
+uint32 total_waypoints
+float32 current_concentration
+uint8 current_risk_level
+uint32 risk_event_count
+string state

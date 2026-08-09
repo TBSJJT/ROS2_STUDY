@@ -30,7 +30,7 @@ slam_toolbox:
     # ==============================
     throttle_scans: 1
 
-    # 你的雷达最小距离是 0.15 m
+    # 当前雷达最小有效距离为 0.15 m
     min_laser_range: 0.15
 
     # 室内建图先限制在 12 m
@@ -113,4 +113,3 @@ slam_toolbox:
 
     debug_logging: false
     enable_interactive_mode: true
-    

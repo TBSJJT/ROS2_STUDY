@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""统一启动 GasRobot 硬件、建图或已知地图导航."""
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
@@ -10,6 +11,7 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    """根据 mode 组合机器人描述、硬件和自主功能."""
     mode = LaunchConfiguration("mode")
     model = LaunchConfiguration("model")
     map_file = LaunchConfiguration("map")
@@ -19,7 +21,6 @@ def generate_launch_description():
     serial_port = LaunchConfiguration("serial_port")
     baud = LaunchConfiguration("baud")
     enable_lidar = LaunchConfiguration("enable_lidar")
-    enable_safety = LaunchConfiguration("enable_safety")
     enable_rviz = LaunchConfiguration("enable_rviz")
     enable_joint_state_publisher = LaunchConfiguration(
         "enable_joint_state_publisher"
@@ -27,6 +28,7 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration("use_sim_time")
     autostart = LaunchConfiguration("autostart")
 
+    # 默认资源全部通过软件包索引定位，避免依赖当前工作目录。
     default_model = PathJoinSubstitution(
         [
             FindPackageShare("gasrobot_description"),
@@ -60,6 +62,7 @@ def generate_launch_description():
         [FindPackageShare("nav2_bringup"), "rviz", "nav2_default_view.rviz"]
     )
 
+    # 机器人描述和硬件在三种模式下都需要启动。
     description = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -87,10 +90,10 @@ def generate_launch_description():
             "serial_port": serial_port,
             "baud": baud,
             "enable_lidar": enable_lidar,
-            "enable_safety": enable_safety,
         }.items(),
     )
 
+    # 建图与导航互斥，由 mode 在运行时选择。
     mapping = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -127,8 +130,10 @@ def generate_launch_description():
         }.items(),
     )
 
+    # 给串口、TF 和雷达预留初始化时间后再启动 SLAM 或 Nav2。
     delayed_autonomy = TimerAction(period=2.0, actions=[mapping, navigation])
 
+    # RViz 独立控制，便于无显示器部署时关闭图形界面。
     rviz = Node(
         package="rviz2",
         executable="rviz2",
@@ -146,28 +151,66 @@ def generate_launch_description():
                 default_value="slam",
                 description="运行模式：hardware、slam 或 nav。",
             ),
-            DeclareLaunchArgument("model", default_value=default_model),
-            DeclareLaunchArgument("map", default_value=default_map),
+            DeclareLaunchArgument(
+                "model",
+                default_value=default_model,
+                description="机器人 URDF/Xacro 模型文件。",
+            ),
+            DeclareLaunchArgument(
+                "map",
+                default_value=default_map,
+                description="导航模式使用的二维地图 YAML 文件。",
+            ),
             DeclareLaunchArgument(
                 "slam_params_file",
                 default_value=default_slam_params,
+                description="SLAM Toolbox 参数文件。",
             ),
             DeclareLaunchArgument(
                 "nav2_params_file",
                 default_value=default_nav2_params,
+                description="Nav2 定位与导航参数文件。",
             ),
-            DeclareLaunchArgument("serial_port", default_value="/dev/ttyUSB0"),
-            DeclareLaunchArgument("baud", default_value="115200"),
-            DeclareLaunchArgument("enable_lidar", default_value="true"),
-            DeclareLaunchArgument("enable_safety", default_value="false"),
-            DeclareLaunchArgument("enable_rviz", default_value="true"),
+            DeclareLaunchArgument(
+                "serial_port",
+                default_value="/dev/ttyUSB0",
+                description="STM32 底盘控制器串口。",
+            ),
+            DeclareLaunchArgument(
+                "baud",
+                default_value="115200",
+                description="STM32 串口波特率。",
+            ),
+            DeclareLaunchArgument(
+                "enable_lidar",
+                default_value="true",
+                description="是否启动激光雷达驱动。",
+            ),
+            DeclareLaunchArgument(
+                "enable_rviz",
+                default_value="true",
+                description="是否启动 RViz 可视化界面。",
+            ),
             DeclareLaunchArgument(
                 "enable_joint_state_publisher",
                 default_value="true",
+                description="是否发布非驱动关节的默认状态。",
             ),
-            DeclareLaunchArgument("use_sim_time", default_value="false"),
-            DeclareLaunchArgument("autostart", default_value="true"),
-            DeclareLaunchArgument("rviz_config", default_value=default_rviz_config),
+            DeclareLaunchArgument(
+                "use_sim_time",
+                default_value="false",
+                description="是否使用仿真时钟；实车必须设为 false。",
+            ),
+            DeclareLaunchArgument(
+                "autostart",
+                default_value="true",
+                description="导航模式是否自动激活生命周期节点。",
+            ),
+            DeclareLaunchArgument(
+                "rviz_config",
+                default_value=default_rviz_config,
+                description="RViz 配置文件。",
+            ),
             description,
             hardware,
             delayed_autonomy,

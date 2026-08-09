@@ -3,21 +3,20 @@
 <package format="3">
   <name>gasrobot_navigation</name>
   <version>0.1.0</version>
-  <description>GasRobot 的激光雷达安全节点与 Nav2 配置软件包。</description>
+  <description>GasRobot 定位、路径规划、避障与自主巡检使用的 Nav2 配置软件包。</description>
   <maintainer email="2799572363@qq.com">book</maintainer>
   <license>Apache-2.0</license>
 
-  <buildtool_depend>ament_python</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>ament_index_python</exec_depend>
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>nav2_bringup</exec_depend>
-  <exec_depend>rclpy</exec_depend>
-  <exec_depend>sensor_msgs</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
 
   <export>
-    <build_type>ament_python</build_type>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

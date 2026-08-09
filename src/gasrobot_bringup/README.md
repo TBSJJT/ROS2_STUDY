@@ -1,6 +1,6 @@
 # gasrobot_bringup
 
-GasRobot 的顶层启动包，组合机器人模型、底盘、雷达、安全节点、SLAM、Nav2 和 RViz。
+GasRobot 的顶层启动包，组合机器人模型、底盘、雷达、SLAM、Nav2 和 RViz。
 
 ## 启动
 
@@ -26,10 +26,10 @@ ros2 launch gasrobot_bringup gasrobot.launch.py mode:=nav
 
 - `mode`：`hardware`、`slam` 或 `nav`。
 - `serial_port`、`baud`：STM32 串口配置。
-- `enable_lidar`、`enable_safety`、`enable_rviz`：功能开关。
+- `enable_lidar`、`enable_rviz`：功能开关。
 - `map`：Nav2 使用的地图 YAML。
 - `slam_params_file`、`nav2_params_file`：算法参数文件。
 - `use_sim_time`：是否使用仿真时间。
 
-`hardware.launch.py` 可单独启动 STM32、雷达和激光安全节点；一般推荐使用
+`hardware.launch.py` 可单独启动 STM32 和雷达；一般推荐使用
 `gasrobot.launch.py` 作为统一入口。

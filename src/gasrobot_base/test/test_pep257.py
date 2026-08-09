@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""检查项目 Python 文档字符串是否符合 PEP 257 规范。"""
+
 from ament_pep257.main import main
 import pytest
 

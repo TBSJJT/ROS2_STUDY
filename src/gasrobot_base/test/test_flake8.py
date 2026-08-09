@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""检查项目 Python 代码是否符合 Flake8 规范。"""
+
 from ament_flake8.main import main_with_errors
 import pytest
 

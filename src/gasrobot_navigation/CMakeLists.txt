@@ -1,15 +1,16 @@
 cmake_minimum_required(VERSION 3.8)
-project(gasrobot_description)
+project(gasrobot_navigation)
 
 find_package(ament_cmake REQUIRED)
 
-# 模型、RViz 配置和 Launch 必须保持相对目录，供 xacro include 正确解析。
-install(DIRECTORY config launch urdf
+# 本包不实现导航算法，只安装经过实车调参的 Nav2 配置与启动文件。
+install(
+  DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
-  # 自动执行版权、格式和 XML 等 ROS 2 标准检查。
+  # 使用 ROS 2 标准检查保证 CMake、XML 和 Launch 文件基本质量。
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 endif()

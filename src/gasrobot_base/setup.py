@@ -1,3 +1,5 @@
+"""gasrobot_base 的 Python 安装与 ROS 2 可执行入口配置."""
+
 import os
 from glob import glob
 
