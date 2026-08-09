@@ -19,8 +19,8 @@ def generate_launch_description():
     baud = LaunchConfiguration("baud")
     enable_lidar = LaunchConfiguration("enable_lidar")
     enable_safety = LaunchConfiguration("enable_safety")
-    lidar_angle = LaunchConfiguration("N10lidar_angle")
-    lidar_stop_distance = LaunchConfiguration("N10lidar_stop_dis")
+    lidar_angle = LaunchConfiguration("lidar_front_angle_deg")
+    lidar_stop_distance = LaunchConfiguration("lidar_stop_distance")
 
     bridge_cmd_topic = PythonExpression(
         [
@@ -31,14 +31,14 @@ def generate_launch_description():
     )
 
     bridge_config = os.path.join(
-        get_package_share_directory("map_demo"),
+        get_package_share_directory("gasrobot_base"),
         "config",
         "stm32_bridge.yaml",
     )
 
     stm32_bridge = Node(
-        package="map_demo",
-        executable="stm32_test",
+        package="gasrobot_base",
+        executable="stm32_bridge",
         name="stm32_bridge",
         output="screen",
         parameters=[
@@ -55,8 +55,8 @@ def generate_launch_description():
     )
 
     lidar_safety = Node(
-        package="map_demo",
-        executable="avoid_node",
+        package="gasrobot_navigation",
+        executable="lidar_safety",
         name="lidar_safety",
         output="screen",
         condition=IfCondition(enable_safety),
@@ -104,11 +104,11 @@ def generate_launch_description():
                 default_value="false",
             ),
             DeclareLaunchArgument(
-                "N10lidar_angle",
+                "lidar_front_angle_deg",
                 default_value="30.0",
             ),
             DeclareLaunchArgument(
-                "N10lidar_stop_dis",
+                "lidar_stop_distance",
                 default_value="0.30",
             ),
             stm32_bridge,

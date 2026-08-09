@@ -44,20 +44,3 @@ stm32_bridge:
 
     debug_tx: false
     debug_rx: false
-    
-    # 使用 IMU Z 轴角速度积分 odom yaw
-    use_imu_wz_for_odom: true
-
-    # ROS 约定：逆时针为正。
-    # 若实车逆时针转动时 yaw 反而减小，改成 -1.0。
-    imu_z_sign: 1.0
-
-    # 静止时小于该值的 Z 轴角速度直接置零
-    gyro_z_deadband: 0.02
-
-    # 每秒打印一次 target、wheel、imu、yaw、odom 和统计
-    status_period: 1.0
-    print_imu_raw: true
-
-    debug_tx: false
-    debug_rx: false

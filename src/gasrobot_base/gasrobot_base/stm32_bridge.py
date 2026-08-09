@@ -237,7 +237,8 @@ class STM32Bridge(Node):
         for name, default in defaults.items():
             self.declare_parameter(name, default)
 
-        get = lambda name: self.get_parameter(name).value
+        def get(name):
+            return self.get_parameter(name).value
 
         # --------------------------------------------------------
         # 读取参数
@@ -668,7 +669,7 @@ class STM32Bridge(Node):
         # ROS 规定 angular.z > 0 为逆时针左转，
         # 但当前 STM32 运动学中 Wz > 0 表现为顺时针右转，
         # 因此发送给下位机前对旋转指令取反。
-        wz_mradps = int(round(-wz_radps * 1000.0))        
+        wz_mradps = int(round(-wz_radps * 1000.0))
         frame = bytearray(COMMAND_FRAME_SIZE)
 
         frame[0] = FRAME_HEADER
@@ -1239,4 +1240,3 @@ def main(args=None) -> None:
 
 if __name__ == "__main__":
     main()
-
