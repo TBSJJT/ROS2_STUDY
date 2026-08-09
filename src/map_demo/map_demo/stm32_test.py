@@ -25,22 +25,21 @@ ROS 坐标约定：
 对 linear.y 取反，否则会造成两次反向。
 
 ============================================================
-二、STM32 -> ROS 2 反馈帧，共 22 字节
+二、STM32 -> ROS 2 反馈帧，共 21 字节
 ============================================================
 
     byte[0]      : 0x7B，帧头
-    byte[1]      : Wz 方向，0 表示正，1 表示负
-    byte[2:4]    : Vx，有符号 int16，大端，单位 mm/s
-    byte[4:6]    : Vy，有符号 int16，大端，单位 mm/s
-    byte[6:8]    : |Wz|，无符号 uint16，大端，单位 mrad/s
-    byte[8:10]   : 加速度计 X，int16
-    byte[10:12]  : 加速度计 Y，int16
-    byte[12:14]  : 加速度计 Z，int16
-    byte[14:16]  : 陀螺仪 X，int16
-    byte[16:18]  : 陀螺仪 Y，int16
-    byte[18:20]  : 陀螺仪 Z，int16
-    byte[20]     : byte[1] ~ byte[19] 累加和的低 8 位
-    byte[21]     : 0x7D，帧尾
+    byte[1:3]    : Vx，有符号 int16，大端，单位 mm/s
+    byte[3:5]    : Vy，有符号 int16，大端，单位 mm/s
+    byte[5:7]    : Wz，有符号 int16，大端，单位 mrad/s
+    byte[7:9]    : 加速度计 X，int16
+    byte[9:11]   : 加速度计 Y，int16
+    byte[11:13]  : 加速度计 Z，int16
+    byte[13:15]  : 陀螺仪 X，int16
+    byte[15:17]  : 陀螺仪 Y，int16
+    byte[17:19]  : 陀螺仪 Z，int16
+    byte[19]     : byte[1] ~ byte[18] 累加和的低 8 位
+    byte[20]     : 0x7D，帧尾
 
 ============================================================
 三、IMU 与 yaw 说明
@@ -111,7 +110,7 @@ FRAME_HEADER = 0x7B
 FRAME_TAIL = 0x7D
 
 COMMAND_FRAME_SIZE = 9
-FEEDBACK_FRAME_SIZE = 22
+FEEDBACK_FRAME_SIZE = 21
 
 GRAVITY = 9.80665
 
@@ -136,15 +135,6 @@ def read_i16_be(data: bytes, offset: int) -> int:
         data[offset:offset + 2],
         byteorder="big",
         signed=True,
-    )
-
-
-def read_u16_be(data: bytes, offset: int) -> int:
-    """从 data[offset:offset+2] 读取大端无符号 uint16。"""
-    return int.from_bytes(
-        data[offset:offset + 2],
-        byteorder="big",
-        signed=False,
     )
 
 
@@ -203,13 +193,13 @@ class STM32Bridge(Node):
 
             # 控制发送和超时
             "tx_rate": 50.0,
-            "cmd_timeout": 0.5,
+            "cmd_timeout": 0.3,
             "feedback_timeout": 0.5,
 
             # ROS 指令限幅
-            "max_linear_x": 1.5,
-            "max_linear_y": 1.5,
-            "max_angular_z": 6.0,
+            "max_linear_x": 0.5,
+            "max_linear_y": 0.5,
+            "max_angular_z": 1.2,
 
             # ICM20602 当前量程换算
             # ±8 g       -> 4096 LSB/g
@@ -790,7 +780,7 @@ class STM32Bridge(Node):
 
     def parse_rx_buffer(self) -> None:
         """
-        从接收缓冲区中搜索并解析完整的 22 字节反馈帧。
+        从接收缓冲区中搜索并解析完整的 21 字节反馈帧。
 
         遇到错误帧时只丢弃一个字节，继续搜索下一个帧头，
         避免一次错误导致后续全部错位。
@@ -818,21 +808,16 @@ class STM32Bridge(Node):
                 self.rx_buffer[:FEEDBACK_FRAME_SIZE]
             )
 
-            if frame[21] != FRAME_TAIL:
+            if frame[20] != FRAME_TAIL:
                 del self.rx_buffer[0]
                 self.bad_frame_count += 1
                 continue
 
             expected_checksum = (
-                sum(frame[1:20]) & 0xFF
+                sum(frame[1:19]) & 0xFF
             )
 
-            if frame[20] != expected_checksum:
-                del self.rx_buffer[0]
-                self.bad_frame_count += 1
-                continue
-
-            if frame[1] not in (0, 1):
+            if frame[19] != expected_checksum:
                 del self.rx_buffer[0]
                 self.bad_frame_count += 1
                 continue
@@ -847,26 +832,18 @@ class STM32Bridge(Node):
         # 底盘三轴速度
         # --------------------------------------------------------
 
-        z_sign = (
-            -1.0
-            if frame[1] == 1
-            else 1.0
-        )
-
         # mm/s -> m/s
         self.measured_vx = (
-            read_i16_be(frame, 2) / 1000.0
+            read_i16_be(frame, 1) / 1000.0
         )
 
         self.measured_vy = (
-            read_i16_be(frame, 4) / 1000.0
+            read_i16_be(frame, 3) / 1000.0
         )
 
         # mrad/s -> rad/s
         self.wheel_wz = (
-            - z_sign
-            * read_u16_be(frame, 6)
-            / 1000.0
+            -read_i16_be(frame, 5) / 1000.0
         )
 
         # --------------------------------------------------------
@@ -874,15 +851,15 @@ class STM32Bridge(Node):
         # --------------------------------------------------------
 
         self.acc_raw = [
-            read_i16_be(frame, 8),
-            read_i16_be(frame, 10),
-            read_i16_be(frame, 12),
+            read_i16_be(frame, 7),
+            read_i16_be(frame, 9),
+            read_i16_be(frame, 11),
         ]
 
         self.gyro_raw = [
-            read_i16_be(frame, 14),
-            read_i16_be(frame, 16),
-            read_i16_be(frame, 18),
+            read_i16_be(frame, 13),
+            read_i16_be(frame, 15),
+            read_i16_be(frame, 17),
         ]
 
         # --------------------------------------------------------
@@ -1263,4 +1240,3 @@ def main(args=None) -> None:
 if __name__ == "__main__":
     main()
 
-    
