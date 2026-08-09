@@ -1,0 +1,87 @@
+"""STM32 底盘协议单元测试。"""
+
+import math
+
+import pytest
+
+from gasrobot_base.models import VelocityCommand
+from gasrobot_base.protocol import (
+    FeedbackStreamParser,
+    ProtocolError,
+    VelocityLimits,
+    decode_feedback_frame,
+    encode_velocity_command,
+)
+
+
+def _write_i16(frame: bytearray, offset: int, value: int) -> None:
+    frame[offset:offset + 2] = value.to_bytes(
+        2,
+        byteorder="big",
+        signed=True,
+    )
+
+
+def _feedback_frame(checksum_delta: int = 0) -> bytes:
+    frame = bytearray(21)
+    frame[0] = 0x7B
+    for offset, value in zip(
+        range(1, 19, 2),
+        (1200, -350, -500, 4096, 0, -4096, 131, -262, 393),
+    ):
+        _write_i16(frame, offset, value)
+    frame[19] = (sum(frame[1:19]) + checksum_delta) & 0xFF
+    frame[20] = 0x7D
+    return bytes(frame)
+
+
+def test_encode_velocity_command_applies_limits_and_ros_sign():
+    frame = encode_velocity_command(
+        VelocityCommand(2.0, -0.25, 0.75),
+        VelocityLimits(1.5, 1.0, 1.0),
+    )
+
+    assert frame[0] == 0x7B
+    assert frame[-1] == 0x7D
+    assert int.from_bytes(frame[1:3], "big", signed=True) == 1500
+    assert int.from_bytes(frame[3:5], "big", signed=True) == -250
+    assert int.from_bytes(frame[5:7], "big", signed=True) == -750
+    assert frame[7] == sum(frame[1:7]) & 0xFF
+
+
+def test_encode_velocity_command_filters_non_finite_values():
+    frame = encode_velocity_command(
+        VelocityCommand(math.nan, math.inf, -math.inf),
+        VelocityLimits(1.0, 1.0, 1.0),
+    )
+
+    assert frame[1:7] == bytes(6)
+
+
+def test_decode_feedback_frame_converts_units_and_sign():
+    feedback = decode_feedback_frame(_feedback_frame())
+
+    assert feedback.linear_x == pytest.approx(1.2)
+    assert feedback.linear_y == pytest.approx(-0.35)
+    assert feedback.angular_z == pytest.approx(0.5)
+    assert feedback.acceleration_raw == (4096, 0, -4096)
+    assert feedback.gyroscope_raw == (131, -262, 393)
+
+
+def test_decode_feedback_frame_rejects_bad_checksum():
+    with pytest.raises(ProtocolError, match="校验和"):
+        decode_feedback_frame(_feedback_frame(checksum_delta=1))
+
+
+def test_stream_parser_handles_noise_fragmentation_and_recovery():
+    parser = FeedbackStreamParser()
+    good_frame = _feedback_frame()
+    bad_frame = _feedback_frame(checksum_delta=1)
+
+    assert parser.feed(b"\x00\x01" + good_frame[:7]) == []
+    first_batch = parser.feed(good_frame[7:] + bad_frame + good_frame)
+
+    assert len(first_batch) == 2
+    assert first_batch[0].linear_x == pytest.approx(1.2)
+    assert first_batch[1].gyroscope_raw[2] == 393
+    assert parser.bad_frame_count >= 2
