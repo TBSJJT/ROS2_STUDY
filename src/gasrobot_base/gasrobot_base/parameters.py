@@ -29,7 +29,7 @@ class BridgeConfig:
     max_angular_z: float = 1.2
     accel_lsb_per_g: float = 4096.0
     gyro_lsb_per_dps: float = 131.0
-    use_imu_wz_for_odom: bool = True
+    use_imu_wz_for_twist: bool = True
     imu_z_sign: float = 1.0
     gyro_z_offset_radps: float = 0.0
     gyro_z_deadband: float = 0.02
@@ -71,7 +71,7 @@ class BridgeConfig:
             max_angular_z=float(values["max_angular_z"]),
             accel_lsb_per_g=float(values["accel_lsb_per_g"]),
             gyro_lsb_per_dps=float(values["gyro_lsb_per_dps"]),
-            use_imu_wz_for_odom=bool(values["use_imu_wz_for_odom"]),
+            use_imu_wz_for_twist=bool(values["use_imu_wz_for_twist"]),
             imu_z_sign=(
                 -1.0 if float(values["imu_z_sign"]) < 0.0 else 1.0
             ),

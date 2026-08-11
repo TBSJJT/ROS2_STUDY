@@ -13,6 +13,7 @@ def _feedback(gyroscope_z: int) -> RawFeedback:
         linear_x=0.0,
         linear_y=0.0,
         angular_z=0.0,
+        yaw=0.0,
         acceleration_raw=(4096, 0, -4096),
         gyroscope_raw=(131, -262, gyroscope_z),
     )

@@ -10,7 +10,9 @@ from gasrobot_base.models import RawFeedback, VelocityCommand
 FRAME_HEADER = 0x7B
 FRAME_TAIL = 0x7D
 COMMAND_FRAME_SIZE = 9
-FEEDBACK_FRAME_SIZE = 21
+FEEDBACK_FRAME_SIZE = 22
+YAW_LEVELS = 256
+YAW_RADIANS_PER_COUNT = 2.0 * math.pi / YAW_LEVELS
 
 
 class ProtocolError(ValueError):
@@ -49,6 +51,13 @@ def _write_i16_be(buffer: bytearray, offset: int, value: int) -> None:
     buffer[offset:offset + 2] = encoded
 
 
+def decode_yaw_byte(value: int) -> float:
+    """将单字节整周航向解码为负圆周率至正圆周率内的弧度。"""
+
+    angle = (value & 0xFF) * YAW_RADIANS_PER_COUNT
+    return math.atan2(math.sin(angle), math.cos(angle))
+
+
 def encode_velocity_command(
     command: VelocityCommand,
     limits: VelocityLimits,
@@ -72,7 +81,7 @@ def encode_velocity_command(
 
 
 def decode_feedback_frame(frame: bytes) -> RawFeedback:
-    """校验并解码一帧 21 字节 STM32 反馈。"""
+    """校验并解码一帧 22 字节 STM32 反馈。"""
 
     if len(frame) != FEEDBACK_FRAME_SIZE:
         raise ProtocolError("反馈帧长度不正确")
@@ -80,13 +89,14 @@ def decode_feedback_frame(frame: bytes) -> RawFeedback:
         raise ProtocolError("反馈帧头不正确")
     if frame[-1] != FRAME_TAIL:
         raise ProtocolError("反馈帧尾不正确")
-    if frame[19] != (sum(frame[1:19]) & 0xFF):
+    if frame[20] != (sum(frame[1:20]) & 0xFF):
         raise ProtocolError("反馈帧校验和不正确")
 
     return RawFeedback(
         linear_x=_read_i16_be(frame, 1) / 1000.0,
         linear_y=_read_i16_be(frame, 3) / 1000.0,
         angular_z=-_read_i16_be(frame, 5) / 1000.0,
+        yaw=decode_yaw_byte(frame[19]),
         acceleration_raw=(
             _read_i16_be(frame, 7),
             _read_i16_be(frame, 9),

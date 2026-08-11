@@ -24,6 +24,7 @@ class RawFeedback:
     linear_x: float
     linear_y: float
     angular_z: float
+    yaw: float
     acceleration_raw: IntVector3
     gyroscope_raw: IntVector3
 

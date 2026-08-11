@@ -13,14 +13,14 @@ def normalize_angle(angle: float) -> float:
 
 
 class OdometryIntegrator:
-    """使用底盘平移速度和可配置角速度源积分二维位姿。"""
+    """使用底盘平移速度积分位置，并直接采用 STM32 的绝对航向。"""
 
     def __init__(
         self,
-        use_imu_yaw_rate: bool,
+        use_imu_angular_velocity: bool,
         max_interval: float = 0.5,
     ) -> None:
-        self.use_imu_yaw_rate = use_imu_yaw_rate
+        self.use_imu_angular_velocity = use_imu_angular_velocity
         self.max_interval = max_interval
         self.x = 0.0
         self.y = 0.0
@@ -35,17 +35,16 @@ class OdometryIntegrator:
     def update(
         self,
         feedback: RawFeedback,
-        imu_yaw_rate: float,
+        imu_angular_z: float,
         stamp: float,
     ) -> OdometrySample:
         """根据一帧反馈更新里程计并返回当前状态。"""
 
         angular_z = (
-            imu_yaw_rate
-            if self.use_imu_yaw_rate
+            imu_angular_z
+            if self.use_imu_angular_velocity
             else feedback.angular_z
         )
-        yaw_source = "IMU" if self.use_imu_yaw_rate else "WHEEL"
 
         interval = 0.0
         if self._last_stamp is not None:
@@ -55,7 +54,9 @@ class OdometryIntegrator:
         self._last_stamp = stamp
 
         if interval > 0.0:
-            middle_yaw = self.yaw + angular_z * interval * 0.5
+            # 使用最短角差求区间中点，避免航向跨越正负圆周率时跳向错误方向。
+            yaw_delta = normalize_angle(feedback.yaw - self.yaw)
+            middle_yaw = normalize_angle(self.yaw + yaw_delta * 0.5)
             world_linear_x = (
                 feedback.linear_x * math.cos(middle_yaw)
                 - feedback.linear_y * math.sin(middle_yaw)
@@ -66,9 +67,9 @@ class OdometryIntegrator:
             )
             self.x += world_linear_x * interval
             self.y += world_linear_y * interval
-            self.yaw = normalize_angle(
-                self.yaw + angular_z * interval
-            )
+
+        # 航向始终以本帧 STM32 绝对值为准，不对角速度进行二次积分。
+        self.yaw = feedback.yaw
 
         return OdometrySample(
             x=self.x,
@@ -77,5 +78,5 @@ class OdometryIntegrator:
             linear_x=feedback.linear_x,
             linear_y=feedback.linear_y,
             angular_z=angular_z,
-            yaw_source=yaw_source,
+            yaw_source="STM32_YAW",
         )

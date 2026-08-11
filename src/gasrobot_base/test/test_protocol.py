@@ -22,16 +22,20 @@ def _write_i16(frame: bytearray, offset: int, value: int) -> None:
     )
 
 
-def _feedback_frame(checksum_delta: int = 0) -> bytes:
-    frame = bytearray(21)
+def _feedback_frame(
+    yaw_byte: int = 64,
+    checksum_delta: int = 0,
+) -> bytes:
+    frame = bytearray(22)
     frame[0] = 0x7B
     for offset, value in zip(
         range(1, 19, 2),
         (1200, -350, -500, 4096, 0, -4096, 131, -262, 393),
     ):
         _write_i16(frame, offset, value)
-    frame[19] = (sum(frame[1:19]) + checksum_delta) & 0xFF
-    frame[20] = 0x7D
+    frame[19] = yaw_byte
+    frame[20] = (sum(frame[1:20]) + checksum_delta) & 0xFF
+    frame[21] = 0x7D
     return bytes(frame)
 
 
@@ -64,8 +68,28 @@ def test_decode_feedback_frame_converts_units_and_sign():
     assert feedback.linear_x == pytest.approx(1.2)
     assert feedback.linear_y == pytest.approx(-0.35)
     assert feedback.angular_z == pytest.approx(0.5)
+    assert feedback.yaw == pytest.approx(math.pi / 2.0)
     assert feedback.acceleration_raw == (4096, 0, -4096)
     assert feedback.gyroscope_raw == (131, -262, 393)
+
+
+@pytest.mark.parametrize(
+    ("yaw_byte", "expected"),
+    (
+        (0, 0.0),
+        (64, math.pi / 2.0),
+        (128, math.pi),
+        (192, -math.pi / 2.0),
+        (255, -2.0 * math.pi / 256.0),
+    ),
+)
+def test_decode_feedback_frame_decodes_full_circle_yaw(
+    yaw_byte: int,
+    expected: float,
+):
+    feedback = decode_feedback_frame(_feedback_frame(yaw_byte=yaw_byte))
+
+    assert feedback.yaw == pytest.approx(expected)
 
 
 def test_decode_feedback_frame_rejects_bad_checksum():

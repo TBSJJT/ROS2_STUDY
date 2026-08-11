@@ -56,7 +56,7 @@ class STM32BridgeNode(Node):
             z_deadband=self.config.gyro_z_deadband,
         )
         self.odometry_integrator = OdometryIntegrator(
-            use_imu_yaw_rate=self.config.use_imu_wz_for_odom,
+            use_imu_angular_velocity=self.config.use_imu_wz_for_twist,
         )
 
         self.target_command = VelocityCommand()
@@ -222,7 +222,7 @@ class STM32BridgeNode(Node):
         stamp = self.get_clock().now()
         self.latest_odometry = self.odometry_integrator.update(
             feedback=feedback,
-            imu_yaw_rate=self.latest_imu.yaw_rate,
+            imu_angular_z=self.latest_imu.yaw_rate,
             stamp=stamp.nanoseconds / 1e9,
         )
         self._publish_imu(stamp, self.latest_imu)
@@ -233,6 +233,7 @@ class STM32BridgeNode(Node):
                 f"收到反馈 | vx={feedback.linear_x:+.3f}, "
                 f"vy={feedback.linear_y:+.3f}, "
                 f"wz={feedback.angular_z:+.3f}, "
+                f"yaw={math.degrees(feedback.yaw):+.2f} deg, "
                 f"imu_wz={self.latest_imu.yaw_rate:+.4f}"
             )
 

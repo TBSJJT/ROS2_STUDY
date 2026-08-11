@@ -25,8 +25,9 @@ stm32_bridge:
 
     accel_lsb_per_g: 4096.0
     gyro_lsb_per_dps: 131.0
-    # 使用 IMU Z 轴角速度积分 odom yaw
-    use_imu_wz_for_odom: true
+    # odom yaw 直接使用 STM32 反馈的绝对航向，不在 ROS 端重复积分。
+    # 此参数只决定 odom.twist.twist.angular.z 使用 IMU 还是轮速解算值。
+    use_imu_wz_for_twist: true
 
     # ROS 规定逆时针为正。
     # 若逆时针转动时 yaw 减小，改成 -1.0。
