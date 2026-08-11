@@ -25,21 +25,21 @@ def _write_i16(frame: bytearray, offset: int, value: int) -> None:
 
 
 def _feedback_frame(
-    yaw_byte: int = 64,
+    yaw_centidegrees: int = 9000,
     checksum_delta: int = 0,
 ) -> bytes:
-    """构造一帧可调航向和校验偏差的 22 字节反馈。"""
+    """构造一帧可调航向和校验偏差的 23 字节反馈。"""
 
-    frame = bytearray(22)
+    frame = bytearray(23)
     frame[0] = 0x7B
     for offset, value in zip(
         range(1, 19, 2),
         (1200, -350, -500, 4096, 0, -4096, 131, -262, 393),
     ):
         _write_i16(frame, offset, value)
-    frame[19] = yaw_byte
-    frame[20] = (sum(frame[1:20]) + checksum_delta) & 0xFF
-    frame[21] = 0x7D
+    _write_i16(frame, 19, yaw_centidegrees)
+    frame[21] = (sum(frame[1:21]) + checksum_delta) & 0xFF
+    frame[22] = 0x7D
     return bytes(frame)
 
 
@@ -84,22 +84,24 @@ def test_decode_feedback_frame_converts_units_and_sign():
 
 
 @pytest.mark.parametrize(
-    ("yaw_byte", "expected"),
+    ("yaw_centidegrees", "expected"),
     (
         (0, 0.0),
-        (64, math.pi / 2.0),
-        (128, math.pi),
-        (192, -math.pi / 2.0),
-        (255, -2.0 * math.pi / 256.0),
+        (9000, math.pi / 2.0),
+        (18000, math.pi),
+        (-9000, -math.pi / 2.0),
+        (-17999, math.radians(-179.99)),
     ),
 )
 def test_decode_feedback_frame_decodes_full_circle_yaw(
-    yaw_byte: int,
+    yaw_centidegrees: int,
     expected: float,
 ):
-    """验证单字节航向在整周关键位置的解码结果。"""
+    """验证双字节航向在正负角度关键位置的解码结果。"""
 
-    feedback = decode_feedback_frame(_feedback_frame(yaw_byte=yaw_byte))
+    feedback = decode_feedback_frame(
+        _feedback_frame(yaw_centidegrees=yaw_centidegrees)
+    )
 
     assert feedback.yaw == pytest.approx(expected)
 
