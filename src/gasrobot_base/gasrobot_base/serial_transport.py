@@ -16,6 +16,9 @@ class SerialTransport:
         baud: int,
         startup_delay: float,
     ) -> None:
+        """保存串口连接参数，但暂不访问硬件。"""
+
+        # 这里只保存连接参数，构造对象时不立即访问硬件。
         self.port = port
         self.baud = baud
         self.startup_delay = startup_delay
@@ -46,6 +49,7 @@ class SerialTransport:
         connection.port = self.port
 
         try:
+            # 某些 USB 转串口会用 DTR/RTS 复位下位机，因此打开前后均关闭。
             self._disable_control_lines(connection)
             connection.open()
             self._disable_control_lines(connection)
@@ -53,6 +57,7 @@ class SerialTransport:
             connection.reset_input_buffer()
             connection.reset_output_buffer()
         except (OSError, SerialException):
+            # 连接初始化失败时关闭半打开句柄，再把原异常交给节点处理。
             if connection.is_open:
                 connection.close()
             raise
@@ -61,10 +66,13 @@ class SerialTransport:
 
     @staticmethod
     def _disable_control_lines(connection: serial.Serial) -> None:
+        """尽力关闭 DTR/RTS；不支持控制线的串口设备可以继续使用。"""
+
         try:
             connection.dtr = False
             connection.rts = False
         except (OSError, SerialException):
+            # 关闭阶段不传播异常，保证节点退出流程能够继续执行。
             pass
 
     def close(self) -> None:
@@ -85,6 +93,8 @@ class SerialTransport:
 
         if not self.is_open:
             return b""
+
+        # timeout=0 保证该读取不会阻塞 ROS 执行器线程。
         waiting = self._serial.in_waiting
         return self._serial.read(waiting) if waiting > 0 else b""
 

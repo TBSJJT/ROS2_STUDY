@@ -9,6 +9,8 @@ from gasrobot_base.models import RawFeedback
 
 
 def _feedback(gyroscope_z: int) -> RawFeedback:
+    """构造带有固定加速度和可调 Z 轴角速度的反馈。"""
+
     return RawFeedback(
         linear_x=0.0,
         linear_y=0.0,
@@ -20,6 +22,8 @@ def _feedback(gyroscope_z: int) -> RawFeedback:
 
 
 def test_converter_outputs_si_units():
+    """验证加速度和角速度正确换算为国际单位制。"""
+
     converter = ImuConverter(4096.0, 131.0, 1.0, 0.0, 0.0)
     sample = converter.convert(_feedback(393))
 
@@ -30,6 +34,8 @@ def test_converter_outputs_si_units():
 
 
 def test_converter_applies_sign_offset_and_deadband():
+    """验证 Z 轴方向、零偏和静止死区依次生效。"""
+
     converter = ImuConverter(
         4096.0,
         131.0,

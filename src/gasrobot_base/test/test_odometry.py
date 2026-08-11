@@ -14,6 +14,8 @@ def _feedback(
     angular_z: float = 0.0,
     yaw: float = 0.0,
 ) -> RawFeedback:
+    """构造只包含里程计测试所需字段的反馈样本。"""
+
     return RawFeedback(
         linear_x=linear_x,
         linear_y=linear_y,
@@ -25,6 +27,8 @@ def _feedback(
 
 
 def test_first_sample_initializes_time_and_adopts_stm32_yaw():
+    """验证首帧不积分位置，但立即采用 STM32 航向。"""
+
     integrator = OdometryIntegrator(use_imu_angular_velocity=True)
     sample = integrator.update(
         _feedback(yaw=0.75),
@@ -39,6 +43,8 @@ def test_first_sample_initializes_time_and_adopts_stm32_yaw():
 
 
 def test_midpoint_integration_uses_consecutive_stm32_yaw_values():
+    """验证平移速度按照相邻两帧航向中点转换到 odom 坐标系。"""
+
     integrator = OdometryIntegrator(
         use_imu_angular_velocity=True,
         max_interval=2.0,
@@ -60,6 +66,8 @@ def test_midpoint_integration_uses_consecutive_stm32_yaw_values():
 
 
 def test_yaw_midpoint_uses_short_path_across_wrap_boundary():
+    """验证航向跨越正负 180 度时沿最短角差计算。"""
+
     integrator = OdometryIntegrator(
         use_imu_angular_velocity=False,
         max_interval=2.0,
@@ -81,6 +89,8 @@ def test_yaw_midpoint_uses_short_path_across_wrap_boundary():
 
 
 def test_twist_source_and_reset_prevent_gap_translation():
+    """验证角速度来源选择，以及断线重连期间不累计平移。"""
+
     integrator = OdometryIntegrator(
         use_imu_angular_velocity=False,
         max_interval=1.0,
@@ -103,4 +113,6 @@ def test_twist_source_and_reset_prevent_gap_translation():
 
 
 def test_normalize_angle_keeps_result_in_expected_range():
+    """验证任意角度能够归一化到约定区间。"""
+
     assert normalize_angle(3.0 * math.pi) == pytest.approx(math.pi)

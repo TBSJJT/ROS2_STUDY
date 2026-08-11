@@ -19,11 +19,14 @@ def main(args=None) -> None:
     rclpy.init(args=args)
     node: Optional[STM32BridgeNode] = None
     try:
+        # 节点构造阶段会读取参数并尝试打开串口。
         node = STM32BridgeNode()
         rclpy.spin(node)
     except KeyboardInterrupt:
+        # Ctrl+C 属于正常退出，不打印无意义的异常堆栈。
         pass
     finally:
+        # 无论正常退出还是初始化失败，都尽力停车、销毁节点并关闭 ROS。
         if node is not None:
             node.stop_and_close()
             node.destroy_node()

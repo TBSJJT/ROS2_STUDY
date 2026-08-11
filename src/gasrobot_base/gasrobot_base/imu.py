@@ -19,8 +19,13 @@ class ImuConverter:
         z_offset_radps: float,
         z_deadband: float,
     ) -> None:
+        """保存传感器量程和 Z 轴修正参数。"""
+
+        # 量程系数来自 ICM20602 配置，不能与下位机寄存器设置脱节。
         self.acceleration_lsb_per_g = acceleration_lsb_per_g
         self.gyroscope_lsb_per_dps = gyroscope_lsb_per_dps
+
+        # Z 轴允许独立修正方向、静态零偏和小角速度噪声。
         self.z_sign = -1.0 if z_sign < 0.0 else 1.0
         self.z_offset_radps = z_offset_radps
         self.z_deadband = z_deadband
@@ -28,6 +33,7 @@ class ImuConverter:
     def convert(self, feedback: RawFeedback) -> ImuSample:
         """转换一帧反馈中的加速度计和陀螺仪数据。"""
 
+        # 加速度由 LSB 转为 m/s²，角速度由 LSB 转为 rad/s。
         acceleration = tuple(
             raw / self.acceleration_lsb_per_g * GRAVITY
             for raw in feedback.acceleration_raw
@@ -41,6 +47,7 @@ class ImuConverter:
         )
         yaw_rate = yaw_rate_before_deadband
         if abs(yaw_rate) < self.z_deadband:
+            # 死区只影响用于 twist 的 Z 轴值，不改变原始三轴角速度输出。
             yaw_rate = 0.0
 
         return ImuSample(

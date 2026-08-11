@@ -21,6 +21,8 @@ import pytest
 @pytest.mark.linter
 @pytest.mark.pep257
 def test_pep257():
+    """运行 Python 文档字符串规范检查。"""
+
     rc = main(argv=[
         '.',
         'test',

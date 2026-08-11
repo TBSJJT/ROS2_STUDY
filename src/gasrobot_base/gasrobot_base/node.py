@@ -31,6 +31,8 @@ from gasrobot_base.serial_transport import SerialTransport
 
 @dataclass
 class _BridgeStatistics:
+    """记录串口收发和故障次数，用于周期状态诊断。"""
+
     transmitted: int = 0
     received: int = 0
     serial_errors: int = 0
@@ -40,7 +42,11 @@ class STM32BridgeNode(Node):
     """连接 ROS 2 话题与 STM32 底盘串口的编排节点。"""
 
     def __init__(self) -> None:
+        """初始化配置、功能组件、ROS 接口和周期任务。"""
+
         super().__init__("stm32_bridge")
+
+        # 第一层：读取参数并构造与 ROS 无关的协议、串口和算法组件。
         self.config = BridgeConfig.from_node(self)
         self.transport = SerialTransport(
             port=self.config.port,
@@ -59,6 +65,7 @@ class STM32BridgeNode(Node):
             use_imu_angular_velocity=self.config.use_imu_wz_for_twist,
         )
 
+        # 第二层：保存指令、反馈和通信时刻，供超时保护与状态输出使用。
         self.target_command = VelocityCommand()
         self.last_command_time: Optional[float] = None
         self.last_feedback_time: Optional[float] = None
@@ -76,6 +83,7 @@ class STM32BridgeNode(Node):
         )
         self.statistics = _BridgeStatistics()
 
+        # 第三层：建立 ROS 话题、TF 广播器以及不同职责的定时器。
         self.command_subscription = self.create_subscription(
             Twist,
             self.config.cmd_vel_topic,
@@ -115,6 +123,8 @@ class STM32BridgeNode(Node):
         self._open_serial()
 
     def _open_serial(self) -> bool:
+        """连接串口并发送启动停车帧，成功时返回真。"""
+
         self.last_reconnect_attempt = time.monotonic()
         try:
             self.transport.connect()
@@ -123,6 +133,8 @@ class STM32BridgeNode(Node):
             self.get_logger().info(
                 f"串口已连接：{self.config.port} @ {self.config.baud}"
             )
+
+            # 上位机重启后先连续停车，清除下位机可能保留的旧运动命令。
             for _ in range(self.config.startup_stop_frames):
                 if not self._write_velocity(VelocityCommand()):
                     return False
@@ -137,6 +149,8 @@ class STM32BridgeNode(Node):
             return False
 
     def _mark_serial_disconnected(self, exc: Exception) -> None:
+        """统一记录通信异常，并清理依赖连续数据的解析和积分状态。"""
+
         self.statistics.serial_errors += 1
         self.get_logger().error(f"串口通信错误：{exc}")
         self.transport.close()
@@ -144,6 +158,8 @@ class STM32BridgeNode(Node):
         self.odometry_integrator.reset_time()
 
     def _try_reconnect(self) -> None:
+        """按配置周期尝试重连，避免故障时高频打开串口。"""
+
         if self.transport.is_open:
             return
         now = time.monotonic()
@@ -153,9 +169,13 @@ class STM32BridgeNode(Node):
 
     @staticmethod
     def _finite_or_zero(value: float) -> float:
+        """过滤 ROS 消息中的 NaN 和无穷值。"""
+
         return value if math.isfinite(value) else 0.0
 
     def _command_callback(self, message: Twist) -> None:
+        """缓存最新速度指令，并刷新指令看门狗时间。"""
+
         self.target_command = VelocityCommand(
             linear_x=self._finite_or_zero(float(message.linear.x)),
             linear_y=self._finite_or_zero(float(message.linear.y)),
@@ -164,6 +184,8 @@ class STM32BridgeNode(Node):
         self.last_command_time = time.monotonic()
 
     def _write_velocity(self, command: VelocityCommand) -> bool:
+        """编码并发送一帧速度指令，发送失败时切换为断线状态。"""
+
         if not self.transport.is_open:
             return False
 
@@ -191,6 +213,8 @@ class STM32BridgeNode(Node):
             return False
 
     def _transmit_loop(self) -> None:
+        """周期发送有效指令；指令超时后自动发送零速度。"""
+
         if not self.transport.is_open:
             self._try_reconnect()
             return
@@ -200,10 +224,14 @@ class STM32BridgeNode(Node):
             self.last_command_time is None
             or now - self.last_command_time > self.config.cmd_timeout
         )
+
+        # 持续发送停车帧而不是停止发送，使下位机明确保持安全状态。
         command = VelocityCommand() if command_expired else self.target_command
         self._write_velocity(command)
 
     def _receive_loop(self) -> None:
+        """非阻塞读取串口，并处理本轮拆出的全部完整反馈帧。"""
+
         if not self.transport.is_open:
             return
         try:
@@ -214,11 +242,14 @@ class STM32BridgeNode(Node):
             self._mark_serial_disconnected(exc)
 
     def _handle_feedback(self, feedback: RawFeedback) -> None:
+        """转换一帧反馈并同步发布 IMU、里程计和 TF。"""
+
         self.latest_feedback = feedback
         self.latest_imu = self.imu_converter.convert(feedback)
         self.statistics.received += 1
         self.last_feedback_time = time.monotonic()
 
+        # 同一帧派生的 IMU、odom 和 TF 共用一个 ROS 时间戳。
         stamp = self.get_clock().now()
         self.latest_odometry = self.odometry_integrator.update(
             feedback=feedback,
@@ -238,9 +269,13 @@ class STM32BridgeNode(Node):
             )
 
     def _publish_imu(self, stamp, sample: ImuSample) -> None:
+        """发布国际单位制的 IMU 原始测量消息。"""
+
         message = Imu()
         message.header.stamp = stamp.to_msg()
         message.header.frame_id = self.config.imu_frame
+
+        # 当前协议只传 Yaw 和三轴惯性量，没有完整姿态协方差。
         message.orientation_covariance[0] = -1.0
         message.linear_acceleration.x = sample.acceleration[0]
         message.linear_acceleration.y = sample.acceleration[1]
@@ -261,6 +296,9 @@ class STM32BridgeNode(Node):
         stamp,
         sample: OdometrySample,
     ) -> None:
+        """发布二维里程计，并按配置广播 odom 到 base 的 TF。"""
+
+        # 平面航向只需要四元数的 z、w 两个分量。
         half_yaw = sample.yaw * 0.5
         quaternion_z = math.sin(half_yaw)
         quaternion_w = math.cos(half_yaw)
@@ -277,6 +315,7 @@ class STM32BridgeNode(Node):
         message.twist.twist.linear.y = sample.linear_y
         message.twist.twist.angular.z = sample.angular_z
 
+        # Z、Roll、Pitch 不由二维底盘观测，使用大协方差明确标记不可信。
         message.pose.covariance[0] = 0.03
         message.pose.covariance[7] = 0.03
         message.pose.covariance[14] = 1e6
@@ -292,6 +331,7 @@ class STM32BridgeNode(Node):
         self.odometry_publisher.publish(message)
 
         if self.tf_broadcaster is not None:
+            # TF 与 /odom 使用同一位姿和时间戳，防止导航侧出现瞬时错位。
             transform = TransformStamped()
             transform.header.stamp = stamp.to_msg()
             transform.header.frame_id = self.config.odom_frame
@@ -303,6 +343,8 @@ class STM32BridgeNode(Node):
             self.tf_broadcaster.sendTransform(transform)
 
     def _print_status(self) -> None:
+        """周期汇总通信、指令、底盘、里程计和 IMU 运行状态。"""
+
         now = time.monotonic()
         serial_state = "已连接" if self.transport.is_open else "未连接"
         command_state, command_age = self._age_state(
@@ -359,6 +401,8 @@ class STM32BridgeNode(Node):
         timeout: float,
         timeout_label: str,
     ):
+        """根据最近更新时间返回状态文字和可读数据年龄。"""
+
         if last_time is None:
             return "未收到", "无"
         age = now - last_time
@@ -367,6 +411,8 @@ class STM32BridgeNode(Node):
 
     @staticmethod
     def _value(item, name: str) -> float:
+        """安全读取可选反馈对象中的数值字段。"""
+
         return float(getattr(item, name)) if item is not None else 0.0
 
     def stop_and_close(self) -> None:

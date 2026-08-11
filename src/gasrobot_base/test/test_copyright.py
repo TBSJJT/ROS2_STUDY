@@ -23,5 +23,7 @@ import pytest
 @pytest.mark.copyright
 @pytest.mark.linter
 def test_copyright():
+    """运行 ROS 2 版权声明检查。"""
+
     rc = main(argv=['.', 'test'])
     assert rc == 0, 'Found errors'

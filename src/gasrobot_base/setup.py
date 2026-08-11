@@ -14,11 +14,13 @@ setup(
     version="0.1.0",
     packages=find_packages(exclude=["test", "tests"]),
     data_files=[
+        # 注册 ament 软件包索引，使 ros2 工具能够发现本软件包。
         (
             "share/ament_index/resource_index/packages",
             ["resource/" + package_name],
         ),
         ("share/" + package_name, ["package.xml"]),
+        # 参数文件安装到软件包 share 目录，launch 和命令行可统一引用。
         (
             os.path.join("share", package_name, "config"),
             glob("config/*.yaml"),
@@ -33,6 +35,7 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
+            # 对外保留稳定的 ros2 run 可执行名称。
             "stm32_bridge = gasrobot_base.stm32_bridge:main",
         ],
     },

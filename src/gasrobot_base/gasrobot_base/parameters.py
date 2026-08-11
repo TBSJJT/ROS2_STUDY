@@ -9,11 +9,14 @@ from gasrobot_base.protocol import VelocityLimits
 class BridgeConfig:
     """STM32 桥接节点的不可变配置。"""
 
+    # 串口连接与重连策略。
     port: str = "/dev/ttyUSB0"
     baud: int = 115200
     reconnect_period: float = 1.0
     startup_delay: float = 0.2
     startup_stop_frames: int = 5
+
+    # ROS 话题名称和 TF 坐标系名称。
     cmd_vel_topic: str = "/cmd_vel"
     odom_topic: str = "/odom"
     imu_topic: str = "/imu/data_raw"
@@ -21,18 +24,24 @@ class BridgeConfig:
     base_frame: str = "base_link"
     imu_frame: str = "imu_link"
     publish_odom_tf: bool = True
+
+    # 发送频率、通信超时和速度安全限幅。
     tx_rate: float = 50.0
     cmd_timeout: float = 0.3
     feedback_timeout: float = 0.5
     max_linear_x: float = 0.5
     max_linear_y: float = 0.5
     max_angular_z: float = 1.2
+
+    # IMU 量程换算以及 Z 轴角速度修正参数。
     accel_lsb_per_g: float = 4096.0
     gyro_lsb_per_dps: float = 131.0
     use_imu_wz_for_twist: bool = True
     imu_z_sign: float = 1.0
     gyro_z_offset_radps: float = 0.0
     gyro_z_deadband: float = 0.02
+
+    # 运行状态输出和串口逐帧调试开关。
     status_period: float = 1.0
     print_imu_raw: bool = True
     debug_tx: bool = False
@@ -43,6 +52,8 @@ class BridgeConfig:
         """在 ROS 节点上声明全部参数并读取最终值。"""
 
         defaults = asdict(cls())
+
+        # 以数据类默认值为唯一参数清单，避免声明和读取两处手工维护。
         for name, value in defaults.items():
             node.declare_parameter(name, value)
 
@@ -50,6 +61,7 @@ class BridgeConfig:
             name: node.get_parameter(name).value
             for name in defaults
         }
+        # rclpy 返回动态类型，集中转换后其余模块只使用确定的配置类型。
         config = cls(
             port=str(values["port"]),
             baud=int(values["baud"]),
@@ -114,6 +126,8 @@ class BridgeConfig:
             "gyro_lsb_per_dps": self.gyro_lsb_per_dps,
             "status_period": self.status_period,
         }
+
+        # 频率、超时、量程和限幅必须为正，否则节点行为没有物理意义。
         for name, value in positive_values.items():
             if value <= 0:
                 raise ValueError(f"{name} 必须大于 0")
@@ -132,6 +146,8 @@ class BridgeConfig:
             "base_frame": self.base_frame,
             "imu_frame": self.imu_frame,
         }
+
+        # 空设备名、话题名或坐标系名会导致启动成功但通信不可用。
         for name, value in required_text.items():
             if not value.strip():
                 raise ValueError(f"{name} 不能为空")

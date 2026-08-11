@@ -20,8 +20,13 @@ class OdometryIntegrator:
         use_imu_angular_velocity: bool,
         max_interval: float = 0.5,
     ) -> None:
+        """初始化二维位置状态和角速度输出策略。"""
+
+        # 该开关只选择 twist.angular.z，不参与 yaw 的计算。
         self.use_imu_angular_velocity = use_imu_angular_velocity
         self.max_interval = max_interval
+
+        # x/y 是 ROS 端唯一需要积分的状态；yaw 每帧由 STM32 覆盖。
         self.x = 0.0
         self.y = 0.0
         self.yaw = 0.0
@@ -49,6 +54,8 @@ class OdometryIntegrator:
         interval = 0.0
         if self._last_stamp is not None:
             interval = stamp - self._last_stamp
+
+            # 时间倒退或间隔过大通常表示时钟异常或串口断线，不积分该段。
             if interval <= 0.0 or interval > self.max_interval:
                 interval = 0.0
         self._last_stamp = stamp

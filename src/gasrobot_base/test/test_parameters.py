@@ -15,6 +15,8 @@ from gasrobot_base.parameters import BridgeConfig
     ],
 )
 def test_invalid_configuration_is_rejected(overrides, expected_name):
+    """验证危险或无效参数能够在启动阶段被拒绝。"""
+
     values = BridgeConfig().__dict__.copy()
     values.update(overrides)
 
@@ -23,4 +25,6 @@ def test_invalid_configuration_is_rejected(overrides, expected_name):
 
 
 def test_default_configuration_is_valid():
+    """验证代码内置默认参数能够通过完整校验。"""
+
     BridgeConfig().validate()
