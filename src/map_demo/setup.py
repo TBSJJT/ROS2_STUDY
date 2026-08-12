@@ -45,14 +45,6 @@ setup(
             ),
             glob('launch/*.launch.py')
         ),
-        (
-            os.path.join(
-                'share', 
-                package_name,
-                'launch'
-            ),
-            glob('launch/*.launch.py')
-        ),
         # 安装 YAML 参数文件
         (
             os.path.join(

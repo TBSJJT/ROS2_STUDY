@@ -25,22 +25,22 @@ ROS 坐标约定：
 对 linear.y 取反，否则会造成两次反向。
 
 ============================================================
-二、STM32 -> ROS 2 反馈帧，共 22 字节
+二、STM32 -> ROS 2 反馈帧，共 23 字节
 ============================================================
 
     byte[0]      : 0x7B，帧头
-    byte[1]      : Wz 方向，0 表示正，1 表示负
-    byte[2:4]    : Vx，有符号 int16，大端，单位 mm/s
-    byte[4:6]    : Vy，有符号 int16，大端，单位 mm/s
-    byte[6:8]    : |Wz|，无符号 uint16，大端，单位 mrad/s
-    byte[8:10]   : 加速度计 X，int16
-    byte[10:12]  : 加速度计 Y，int16
-    byte[12:14]  : 加速度计 Z，int16
-    byte[14:16]  : 陀螺仪 X，int16
-    byte[16:18]  : 陀螺仪 Y，int16
-    byte[18:20]  : 陀螺仪 Z，int16
-    byte[20]     : byte[1] ~ byte[19] 累加和的低 8 位
-    byte[21]     : 0x7D，帧尾
+    byte[1:3]    : Vx，有符号 int16，大端，单位 mm/s
+    byte[3:5]    : Vy，有符号 int16，大端，单位 mm/s
+    byte[5:7]    : Wz，有符号 int16，大端，单位 mrad/s
+    byte[7:9]    : 加速度计 X，有符号 int16，大端
+    byte[9:11]   : 加速度计 Y，有符号 int16，大端
+    byte[11:13]  : 加速度计 Z，有符号 int16，大端
+    byte[13:15]  : 陀螺仪 X，有符号 int16，大端
+    byte[15:17]  : 陀螺仪 Y，有符号 int16，大端
+    byte[17:19]  : 陀螺仪 Z，有符号 int16，大端
+    byte[19:21]  : Yaw，有符号 int16，大端，单位 0.01°
+    byte[21]     : byte[1] ~ byte[20] 累加和的低 8 位
+    byte[22]     : 0x7D，帧尾
 
 ============================================================
 三、IMU 与 yaw 说明
@@ -56,7 +56,7 @@ ROS 坐标约定：
     2. deg/s -> rad/s
     3. 可选固定补偿 gyro_z_offset_radps
     4. 小角速度死区过滤
-    5. 对 Z 轴角速度积分得到 yaw
+    5. 直接读取 STM32 上传的绝对 Yaw（0.01°），ROS 端不再对角速度重复积分
 
 ============================================================
 四、节点功能
@@ -111,7 +111,7 @@ FRAME_HEADER = 0x7B
 FRAME_TAIL = 0x7D
 
 COMMAND_FRAME_SIZE = 9
-FEEDBACK_FRAME_SIZE = 22
+FEEDBACK_FRAME_SIZE = 23
 
 GRAVITY = 9.80665
 
@@ -138,14 +138,6 @@ def read_i16_be(data: bytes, offset: int) -> int:
         signed=True,
     )
 
-
-def read_u16_be(data: bytes, offset: int) -> int:
-    """从 data[offset:offset+2] 读取大端无符号 uint16。"""
-    return int.from_bytes(
-        data[offset:offset + 2],
-        byteorder="big",
-        signed=False,
-    )
 
 
 def write_i16_be(
@@ -217,15 +209,21 @@ class STM32Bridge(Node):
             "accel_lsb_per_g": 4096.0,
             "gyro_lsb_per_dps": 131.0,
 
-            # yaw 来源：
+            # /odom.twist.angular.z 的角速度来源：
             # True  -> IMU Z 轴角速度
             # False -> 编码器正运动学得到的 Wz
+            # 注意：/odom.pose 的 yaw 始终直接使用 STM32 上传的 Yaw，
+            # 不再由 ROS 端积分角速度。
             "use_imu_wz_for_odom": True,
 
             # IMU Z 轴方向修正：
             # ROS 要求逆时针为正。
-            # 若实车逆时针转动时 yaw 减小，将其改为 -1.0。
             "imu_z_sign": 1.0,
+
+            # STM32 上传 Yaw 的方向修正。
+            # 当前约定左转/逆时针为正，因此默认 +1.0。
+            # 若实测左转时 STM32 Yaw 减小，再改为 -1.0。
+            "yaw_sign": 1.0,
 
             # 固定的 Z 轴角速度补偿，单位 rad/s。
             # 下位机已做零偏标定时保持 0.0。
@@ -289,6 +287,12 @@ class STM32Bridge(Node):
             else 1.0
         )
 
+        self.yaw_sign = (
+            -1.0
+            if float(get("yaw_sign")) < 0.0
+            else 1.0
+        )
+
         self.gyro_z_offset_radps = float(
             get("gyro_z_offset_radps")
         )
@@ -343,8 +347,13 @@ class STM32Bridge(Node):
         # 方向修正、固定补偿和死区前
         self.imu_wz_before_deadband = 0.0
 
-        # 最终用于发布和 yaw 积分的角速度
+        # 最终用于发布 /imu 和 /odom.twist 的 IMU Z 轴角速度
         self.imu_wz = 0.0
+
+        # STM32 直接上传的绝对 Yaw。
+        # 协议单位为 0.01°，这里转换后统一保存为 rad。
+        self.stm32_yaw_centideg = 0
+        self.stm32_yaw = 0.0
 
         # --------------------------------------------------------
         # 里程计状态
@@ -355,7 +364,8 @@ class STM32Bridge(Node):
         self.odom_yaw = 0.0
 
         self.current_odom_wz = 0.0
-        self.yaw_source = "NONE"
+        self.yaw_source = "STM32_YAW"
+        self.wz_source = "NONE"
 
         self.last_feedback_time: Optional[float] = None
         self.last_feedback_stamp = None
@@ -435,8 +445,9 @@ class STM32Bridge(Node):
         )
 
         self.get_logger().info(
-            f"yaw source preference="
-            f"{'IMU' if self.use_imu_wz_for_odom else 'WHEEL'}, "
+            f"yaw=STM32 absolute, "
+            f"odom_wz={'IMU' if self.use_imu_wz_for_odom else 'WHEEL'}, "
+            f"yaw_sign={self.yaw_sign:+.0f}, "
             f"imu_z_sign={self.imu_z_sign:+.0f}, "
             f"gyro_z_offset={self.gyro_z_offset_radps:+.5f}rad/s, "
             f"deadband={self.gyro_z_deadband:.3f}rad/s"
@@ -790,7 +801,7 @@ class STM32Bridge(Node):
 
     def parse_rx_buffer(self) -> None:
         """
-        从接收缓冲区中搜索并解析完整的 22 字节反馈帧。
+        从接收缓冲区中搜索并解析完整的 23 字节反馈帧。
 
         遇到错误帧时只丢弃一个字节，继续搜索下一个帧头，
         避免一次错误导致后续全部错位。
@@ -818,21 +829,18 @@ class STM32Bridge(Node):
                 self.rx_buffer[:FEEDBACK_FRAME_SIZE]
             )
 
-            if frame[21] != FRAME_TAIL:
+            # STM32: buffer[22] = FRAME_TAIL
+            if frame[22] != FRAME_TAIL:
                 del self.rx_buffer[0]
                 self.bad_frame_count += 1
                 continue
 
+            # STM32: checksum = sum(buffer[1] ... buffer[20])
             expected_checksum = (
-                sum(frame[1:20]) & 0xFF
+                sum(frame[1:21]) & 0xFF
             )
 
-            if frame[20] != expected_checksum:
-                del self.rx_buffer[0]
-                self.bad_frame_count += 1
-                continue
-
-            if frame[1] not in (0, 1):
+            if frame[21] != expected_checksum:
                 del self.rx_buffer[0]
                 self.bad_frame_count += 1
                 continue
@@ -847,43 +855,45 @@ class STM32Bridge(Node):
         # 底盘三轴速度
         # --------------------------------------------------------
 
-        z_sign = (
-            -1.0
-            if frame[1] == 1
-            else 1.0
-        )
-
         # mm/s -> m/s
         self.measured_vx = (
-            read_i16_be(frame, 2) / 1000.0
+            read_i16_be(frame, 1) / 1000.0
         )
 
         self.measured_vy = (
-            read_i16_be(frame, 4) / 1000.0
+            read_i16_be(frame, 3) / 1000.0
         )
 
-        # mrad/s -> rad/s
+        # STM32 直接发送有符号 int16 Wz。
+        # 当前 STM32 Drive_Motor() 的 Wz 正方向与 ROS angular.z 相反，
+        # 因此反馈到 ROS 时仍需取反：mrad/s -> rad/s。
         self.wheel_wz = (
-            - z_sign
-            * read_u16_be(frame, 6)
-            / 1000.0
+            -read_i16_be(frame, 5) / 1000.0
         )
 
         # --------------------------------------------------------
-        # ICM20602 原始数据
+        # ICM20602 校正后的原始量纲数据
         # --------------------------------------------------------
 
         self.acc_raw = [
-            read_i16_be(frame, 8),
-            read_i16_be(frame, 10),
-            read_i16_be(frame, 12),
+            read_i16_be(frame, 7),
+            read_i16_be(frame, 9),
+            read_i16_be(frame, 11),
         ]
 
         self.gyro_raw = [
-            read_i16_be(frame, 14),
-            read_i16_be(frame, 16),
-            read_i16_be(frame, 18),
+            read_i16_be(frame, 13),
+            read_i16_be(frame, 15),
+            read_i16_be(frame, 17),
         ]
+
+        # STM32 直接上传绝对 Yaw，单位 0.01°。
+        # 例如 9000 -> +90.00°，-9000 -> -90.00°。
+        self.stm32_yaw_centideg = read_i16_be(frame, 19)
+        self.stm32_yaw = normalize_angle(
+            self.yaw_sign
+            * math.radians(self.stm32_yaw_centideg / 100.0)
+        )
 
         # --------------------------------------------------------
         # 转换为 ROS 使用的 SI 单位
@@ -941,7 +951,8 @@ class STM32Bridge(Node):
                 f"{self.measured_vx:+.3f},"
                 f"{self.measured_vy:+.3f},"
                 f"{self.wheel_wz:+.3f}) | "
-                f"imu_wz={self.imu_wz:+.4f}"
+                f"imu_wz={self.imu_wz:+.4f} | "
+                f"yaw={math.degrees(self.stm32_yaw):+.2f}deg"
             )
 
     # ============================================================
@@ -956,7 +967,9 @@ class STM32Bridge(Node):
         msg.header.stamp = stamp.to_msg()
         msg.header.frame_id = self.imu_frame
 
-        # 下位机反馈帧没有姿态四元数。
+        # 下位机虽然上传了 Yaw，但没有上传完整 Roll/Pitch/Yaw 四元数。
+        # 因此 /imu/data_raw 仍按“无 orientation”发布；
+        # STM32 Yaw 用于 /odom.pose 和 odom -> base_link TF。
         # covariance[0] = -1 表示 orientation 不可用。
         msg.orientation_covariance[0] = -1.0
 
@@ -985,10 +998,11 @@ class STM32Bridge(Node):
 
     def update_and_publish_odometry(self, stamp) -> None:
         """
-        根据底盘 Vx、Vy 和角速度积分二维里程计。
+        根据底盘 Vx、Vy 积分二维位置，Yaw 直接使用 STM32 上传值。
 
         x、y 使用 STM32 编码器正运动学反馈。
-        yaw 默认使用 IMU Z 轴角速度积分。
+        yaw 使用反馈帧 byte[19:21] 的绝对 Yaw，不在 ROS 端重复积分。
+        /odom.twist.angular.z 仍可在 IMU Wz 与轮速 Wz 之间选择。
         """
 
         dt = 0.0
@@ -998,7 +1012,7 @@ class STM32Bridge(Node):
                 stamp - self.last_feedback_stamp
             ).nanoseconds / 1e9
 
-            # 时间异常或串口断流重连后，本帧不积分。
+            # 时间异常或串口断流重连后，本帧不积分 x/y。
             if dt <= 0.0 or dt > 0.5:
                 dt = 0.0
 
@@ -1006,20 +1020,22 @@ class STM32Bridge(Node):
 
         if self.use_imu_wz_for_odom:
             odom_wz = self.imu_wz
-            self.yaw_source = "IMU"
-
+            self.wz_source = "IMU"
         else:
             odom_wz = self.wheel_wz
-            self.yaw_source = "WHEEL"
+            self.wz_source = "WHEEL"
 
         self.current_odom_wz = odom_wz
 
+        # 保存上一帧 Yaw，用最短角差求本周期中间姿态。
+        # 这样可以正确处理 +179° -> -179° 的跨界情况。
+        previous_yaw = self.odom_yaw
+        new_yaw = self.stm32_yaw
+        yaw_delta = normalize_angle(new_yaw - previous_yaw)
+
         if dt > 0.0:
-            # 中点法：
-            # 用当前周期中间时刻的 yaw 将车体速度转换到 odom 坐标系。
-            middle_yaw = (
-                self.odom_yaw
-                + odom_wz * dt * 0.5
+            middle_yaw = normalize_angle(
+                previous_yaw + yaw_delta * 0.5
             )
 
             world_vx = (
@@ -1039,10 +1055,9 @@ class STM32Bridge(Node):
             self.odom_x += world_vx * dt
             self.odom_y += world_vy * dt
 
-            self.odom_yaw = normalize_angle(
-                self.odom_yaw
-                + odom_wz * dt
-            )
+        # Yaw 始终直接采用 STM32 当前姿态，不执行 yaw += wz * dt。
+        self.odom_yaw = new_yaw
+        self.yaw_source = "STM32_YAW"
 
         # 平面 yaw -> 四元数
         half_yaw = self.odom_yaw * 0.5
@@ -1186,10 +1201,12 @@ class STM32Bridge(Node):
             f"gz_used={self.imu_wz:+.4f} rad/s\n"
 
             f"  odom   : "
-            f"source={self.yaw_source}  "
+            f"yaw_source={self.yaw_source}  "
+            f"wz_source={self.wz_source}  "
             f"x={self.odom_x:+.3f} m  "
             f"y={self.odom_y:+.3f} m  "
             f"yaw={yaw_deg:+.2f} deg  "
+            f"yaw_raw={self.stm32_yaw_centideg:+d} cdeg  "
             f"yaw_rad={self.odom_yaw:+.4f}  "
             f"wz={self.current_odom_wz:+.4f} rad/s\n"
 
