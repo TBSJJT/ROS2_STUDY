@@ -1,8 +1,17 @@
-# 目标：按顺序巡检地图中的一组位姿并监测目标气体。
+# 目标：执行临时位姿序列，或按名称执行机器人本地的工程化巡检路线。
+# route_name 非空时优先使用本地配置路线；waypoints 用于后端临时下发实验路线。
+string route_name
 geometry_msgs/PoseStamped[] waypoints
 string target_gas
 float32 alarm_threshold
 bool stop_on_critical_risk
+
+# 临时路线的执行策略；本地配置路线使用 YAML 中的对应策略。
+uint32 repeat_count
+float32 default_dwell_sec
+uint32 max_retries
+bool continue_on_failure
+float32 navigation_timeout_sec
 ---
 # 结果：报告任务是否完成以及任务期间发现的风险数量。
 bool success

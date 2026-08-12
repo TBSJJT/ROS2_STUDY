@@ -22,6 +22,11 @@ def generate_launch_description():
     baud = LaunchConfiguration("baud")
     enable_lidar = LaunchConfiguration("enable_lidar")
     enable_rviz = LaunchConfiguration("enable_rviz")
+    enable_inspection = LaunchConfiguration("enable_inspection")
+    inspection_route_file = LaunchConfiguration("inspection_route_file")
+    default_route = LaunchConfiguration("default_route")
+    auto_set_initial_pose = LaunchConfiguration("auto_set_initial_pose")
+    auto_start_inspection = LaunchConfiguration("auto_start_inspection")
     enable_joint_state_publisher = LaunchConfiguration(
         "enable_joint_state_publisher"
     )
@@ -60,6 +65,13 @@ def generate_launch_description():
     )
     default_rviz_config = PathJoinSubstitution(
         [FindPackageShare("nav2_bringup"), "rviz", "nav2_default_view.rviz"]
+    )
+    default_inspection_routes = PathJoinSubstitution(
+        [
+            FindPackageShare("gasrobot_navigation"),
+            "config",
+            "inspection_routes.yaml",
+        ]
     )
 
     # 机器人描述和硬件在三种模式下都需要启动。
@@ -133,6 +145,37 @@ def generate_launch_description():
     # 给串口、TF 和雷达预留初始化时间后再启动 SLAM 或 Nav2。
     delayed_autonomy = TimerAction(period=2.0, actions=[mapping, navigation])
 
+    # 巡检任务必须等待 AMCL 和 Nav2 激活，因此在导航启动后额外延时加载。
+    inspection = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [
+                    FindPackageShare("gasrobot_navigation"),
+                    "launch",
+                    "inspection.launch.py",
+                ]
+            )
+        ),
+        condition=IfCondition(
+            PythonExpression(
+                [
+                    "'",
+                    mode,
+                    "' == 'nav' and '",
+                    enable_inspection,
+                    "'.lower() == 'true'",
+                ]
+            )
+        ),
+        launch_arguments={
+            "route_file": inspection_route_file,
+            "default_route": default_route,
+            "auto_set_initial_pose": auto_set_initial_pose,
+            "auto_start": auto_start_inspection,
+        }.items(),
+    )
+    delayed_inspection = TimerAction(period=5.0, actions=[inspection])
+
     # RViz 独立控制，便于无显示器部署时关闭图形界面。
     rviz = Node(
         package="rviz2",
@@ -192,6 +235,31 @@ def generate_launch_description():
                 description="是否启动 RViz 可视化界面。",
             ),
             DeclareLaunchArgument(
+                "enable_inspection",
+                default_value="false",
+                description="导航模式下是否启动自主气体巡检任务层。",
+            ),
+            DeclareLaunchArgument(
+                "inspection_route_file",
+                default_value=default_inspection_routes,
+                description="初始化位姿和命名巡检路线文件。",
+            ),
+            DeclareLaunchArgument(
+                "default_route",
+                default_value="standard_route",
+                description="服务或自动启动时使用的默认巡检路线。",
+            ),
+            DeclareLaunchArgument(
+                "auto_set_initial_pose",
+                default_value="true",
+                description="巡检节点启动后是否发布固定 AMCL 初始位姿。",
+            ),
+            DeclareLaunchArgument(
+                "auto_start_inspection",
+                default_value="false",
+                description="是否在系统就绪后自动执行默认巡检路线。",
+            ),
+            DeclareLaunchArgument(
                 "enable_joint_state_publisher",
                 default_value="true",
                 description="是否发布非驱动关节的默认状态。",
@@ -214,6 +282,7 @@ def generate_launch_description():
             description,
             hardware,
             delayed_autonomy,
+            delayed_inspection,
             rviz,
         ]
     )
