@@ -83,12 +83,15 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "use_composition",
-                default_value="true",
-                description="是否在组件容器中运行 Nav2 节点。",
+                # Nav2 Humble 的官方 Launch 会把这个值拼入 PythonExpression。
+                # 必须使用 Python 可识别的 True/False，不能写成小写 true/false，
+                # 否则启动时会出现“name 'true' is not defined”。
+                default_value="False",
+                description="是否在组件容器中运行 Nav2 节点；默认关闭以便实车诊断。",
             ),
             DeclareLaunchArgument(
                 "respawn",
-                default_value="false",
+                default_value="False",
                 description="独立进程模式下节点退出后是否自动重启。",
             ),
             nav2_bringup,
