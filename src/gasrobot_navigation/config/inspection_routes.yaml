@@ -11,7 +11,7 @@
 # ============================================================================
 version: 1
 frame_id: map
-site_configured: false
+site_configured: true
 
 # AMCL 初始化位姿。只有机器人每次都从固定停靠位上电时才建议自动发布。
 initial_pose:
@@ -26,43 +26,30 @@ initial_pose:
 
 routes:
   standard_route:
-    description: 标准气体泄漏巡检路线
+    description: 当前场地气体巡检路线
     target_gas: methane
     alarm_threshold: 1000.0
     stop_on_critical_risk: true
 
-    # repeat_count 表示整条路线执行圈数；每个巡检点可覆盖默认停留时间。
     repeat_count: 1
     default_dwell_sec: 5.0
-
-    # 单点导航失败后的工程处理策略。
     max_retries: 2
     continue_on_failure: false
     navigation_timeout_sec: 180.0
 
     waypoints:
-      - id: charging_station
-        description: 固定停靠与任务起点
-        x: 0.0
-        y: 0.0
+      - id: inspection_point_01
+        description: 第一个气体巡检点
+        x: 1.7866
+        y: -1.4502
         yaw_deg: 0.0
-        dwell_sec: 2.0
+        dwell_sec: 8.0
 
-      - id: inspection_area_a
-        description: A 区管线与阀门巡检点
-        x: 0.0
-        y: 0.0
+      - id: inspection_point_02
+        description: 第二个气体巡检点
+        x: -2.1142
+        y: 3.9452
         yaw_deg: 0.0
+        dwell_sec: 8.0
 
-      - id: inspection_area_b
-        description: B 区设备接口巡检点
-        x: 0.0
-        y: 0.0
-        yaw_deg: 0.0
-
-      - id: return_station
-        description: 完成巡检后返回停靠区
-        x: 0.0
-        y: 0.0
-        yaw_deg: 180.0
-        dwell_sec: 0.0
+        

@@ -95,8 +95,9 @@ amcl:
 
     # 当前使用差速运动模型。
     # 虽然底盘是麦克纳姆轮，但首次导航关闭了linear.y，可先按差速模式测试。
-    robot_model_type: "nav2_amcl::DifferentialMotionModel"
-
+    # robot_model_type: "nav2_amcl::DifferentialMotionModel"
+    # 麦克纳姆轮属于全向底盘
+    robot_model_type: "nav2_amcl::OmniMotionModel"
     # 每秒保存上次定位姿态的频率
     save_pose_rate: 0.5
 
@@ -122,7 +123,7 @@ amcl:
     z_short: 0.05
 
     # AMCL订阅的激光话题；相对名称最终通常解析为 /scan
-    scan_topic: scan
+    scan_topic: /scan
 
 
 # =====================================================================
@@ -243,7 +244,7 @@ controller_server:
       # 否则可能被认为没有取得进展。
       required_movement_radius: 0.1
 
-      # 允许机器人15秒内完成上述移动
+      # 允许机器人10秒内完成上述移动
       movement_time_allowance: 10.0
 
     # ---------------------------------------------------------------
@@ -255,11 +256,11 @@ controller_server:
       stateful: True
       plugin: "nav2_controller::SimpleGoalChecker"
 
-      # 到目标点平面距离小于0.25 m，认为位置到达
+      # 到目标点平面距离小于0.10 m，认为位置到达
       xy_goal_tolerance: 0.10
 
-      # 最终朝向误差小于0.15 rad（约8.6° 角度=弧度*180/3.14），认为姿态到达
-      yaw_goal_tolerance: 0.15
+      # 最终朝向误差小于0.10 rad（约5.7° 角度=0.1*180/3.14），认为姿态到达
+      yaw_goal_tolerance: 0.10
 
     # ---------------------------------------------------------------
     # 3.3 DWB局部控制器
@@ -275,8 +276,10 @@ controller_server:
       max_vel_x: 0.20
 
       # 当前关闭y方向横移，先按差速底盘方式导航
-      min_vel_y: 0.0
-      max_vel_y: 0.0
+      min_vel_y: -0.10
+      # min_vel_y: 0.0
+      # max_vel_y: 0.0
+      max_vel_y: 0.10
 
       # 最大角速度，单位rad/s
       max_vel_theta: 0.4
@@ -291,12 +294,12 @@ controller_server:
       # 最大加速度，单位：
       # x/y为m/s²，theta为rad/s²
       acc_lim_x: 0.3
-      acc_lim_y: 0.0
+      acc_lim_y: 0.3
       acc_lim_theta: 0.8
 
       # 最大减速度使用负数表示
       decel_lim_x: -0.3
-      decel_lim_y: 0.0
+      decel_lim_y: -0.30
       decel_lim_theta: -0.8
 
       # 在速度空间中采样的候选数量。
@@ -387,7 +390,6 @@ local_costmap:
       resolution: 0.05
 
       # 当前使用矩形轮廓，不使用圆形robot_radius
-      # robot_radius: 0.22
       footprint: "[[-0.16, -0.1625], [-0.16, 0.1625], [0.16, 0.1625], [0.16, -0.1625]]"
 
       # 局部地图加载体素障碍层和膨胀层。
@@ -403,8 +405,8 @@ local_costmap:
         # 代价值随距离衰减的快慢，越大衰减越快
         cost_scaling_factor: 3.0
 
-        # 障碍物周围0.30 m范围内产生膨胀代价
-        inflation_radius: 0.30
+        # 障碍物周围0.20 m范围内产生膨胀代价
+        inflation_radius: 0.20
 
       # ---------------------------------------------------------------
       # 4.2 三维体素障碍层
@@ -477,7 +479,6 @@ global_costmap:
       use_sim_time: false
 
       # 使用与局部地图相同的机器人矩形轮廓
-      # robot_radius: 0.22
       footprint: "[[-0.16, -0.1625], [-0.16, 0.1625], [0.16, 0.1625], [0.16, -0.1625]]"
 
       resolution: 0.05
@@ -523,7 +524,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
-        inflation_radius: 0.30
+        inflation_radius: 0.20
 
       always_send_full_costmap: True
 
@@ -706,12 +707,12 @@ velocity_smoother:
 
     # [linear.x, linear.y, angular.z]
     # 注意：这里linear.x最大只有0.20 m/s，
-    max_velocity: [0.20, 0.0, 0.40]
-    min_velocity: [-0.20, 0.0, -0.40]
+    max_velocity: [0.20, 0.10, 0.40]
+    min_velocity: [-0.20, -0.10, -0.40]
 
     # 最大加速度和减速度
-    max_accel: [0.30, 0.0, 0.80]
-    max_decel: [-0.30, 0.0, -0.80]
+    max_accel: [0.30, 0.30, 0.80]
+    max_decel: [-0.30, -0.30, -0.80]
 
     # 若以后改为CLOSED_LOOP，会使用此里程计话题反馈
     odom_topic: "odom"
