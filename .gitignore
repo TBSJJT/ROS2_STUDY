@@ -5,6 +5,10 @@ log/
 __pycache__/
 *.pyc
 .pytest_cache/
+*.egg-info/
+.coverage
+coverage.xml
+compile_commands.json
 
 .vscode/
 .idea/

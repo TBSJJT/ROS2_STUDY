@@ -1,0 +1,6 @@
+# 将完整风险事件提交给后端平台并等待接收确认。
+gasrobot_interfaces/RiskEvent event
+---
+bool accepted
+string backend_event_id
+string message
