@@ -239,9 +239,6 @@ class InspectionManager(Node):
         11. 按配置设置自动初始化和自动启动定时器
 
         """
-
-        # --- 步骤 1: 调用父类构造函数 ---
-        # "inspection_manager" 是节点名称, 在 ROS 2 网络中唯一标识此节点
         super().__init__("inspection_manager")
 
         # 创建可重入回调组
@@ -250,9 +247,6 @@ class InspectionManager(Node):
         #   当 Action 回调正在等待 Nav2 响应时, 其他回调(如风险事件)仍然可以执行
         self.callback_group = ReentrantCallbackGroup()
 
-        # ============================================================
-        # 步骤 2: 声明并读取 ROS 参数
-        # ============================================================
         # declare_parameter(name, default_value): 
         #   声明一个参数并设置默认值
         #   用户可以在 launch 文件中或命令行用 --ros-args -p name:=value 覆盖

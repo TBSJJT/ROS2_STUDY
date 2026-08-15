@@ -71,6 +71,10 @@ class OdometryIntegrator:
 
         # 上一帧的时间戳 (秒)
         # 初始为 None, 表示还没有收到过数据
+        # Optional 是 typing 模块提供的泛型，等价于 Union[float, None]
+        # 表示该变量可以是 float 类型，也可以是 None。
+        # 当尚未记录时间戳时，值为 None。
+        # 一旦赋值，通常为一个浮点数（如 time.time() 返回的秒数）。
         self._last_stamp: Optional[float] = None
 
     def reset_time(self) -> None:
@@ -184,5 +188,5 @@ class OdometryIntegrator:
             linear_x=feedback.linear_x,   # 本体坐标系下的速度
             linear_y=feedback.linear_y,
             angular_z=angular_z,
-            yaw_source="STM32_YAW",         # 标记航向来�为 STM32
+            yaw_source="STM32_YAW",         # 标记航向来源为 STM32
         )

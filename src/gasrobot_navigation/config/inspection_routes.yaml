@@ -19,7 +19,8 @@ initial_pose:
   y: 0.0
   yaw_deg: 0.0
   covariance:
-    # 分别对应 PoseWithCovariance 的 x、y 和 yaw 对角项。
+    
+    # 协方差，分别对应 PoseWithCovariance 的 x、y 和 yaw 对角项。
     x: 0.25
     y: 0.25
     yaw: 0.0685
