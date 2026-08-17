@@ -268,8 +268,8 @@ controller_server:
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
 
-      # 输出更多轨迹评价信息，调试时有用，但日志量会增加
-      debug_trajectory_details: True
+      # 生产运行默认关闭轨迹评价调试输出，需要调参时再临时开启
+      debug_trajectory_details: False
 
       # x方向最小/最大速度，单位m/s
       min_vel_x: 0.0
@@ -415,8 +415,8 @@ local_costmap:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
 
-        # 发布体素地图供RViz查看，会增加一定通信负担
-        publish_voxel_map: True
+        # 轻量 RViz 不订阅体素点云，默认不发布以减少虚拟机通信与渲染负担
+        publish_voxel_map: False
 
         # 体素层从z=0开始
         origin_z: 0.0

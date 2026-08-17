@@ -737,9 +737,16 @@ namespace lslidar_driver {
         }
         
         if (computed_crc != packet->data[packet_size - 1]) {
-            LS_WARN << "CRC check failed (lowercase): calculated: " << std::hex << std::setw(2) << std::setfill('0') << computed_crc
-                    << ", received: " << std::hex << std::setw(2) << std::setfill('0') << packet->data[packet_size - 1] << LS_END;
-            LS_WARN << "Abandon the current data packet." << LS_END;
+            // A damaged serial stream can produce hundreds of bad packets per
+            // second.  Logging every packet floods ros2 launch / the terminal,
+            // which can starve RViz and unrelated Nav2 executors.  Keep the
+            // error visible while bounding the logging cost.
+            RCLCPP_WARN_THROTTLE(
+                    node_->get_logger(), *node_->get_clock(), 2000,
+                    "N10 CRC mismatch: calculated=0x%02x received=0x%02x; "
+                    "packet discarded (CRC warnings are rate-limited)",
+                    static_cast<unsigned int>(computed_crc),
+                    static_cast<unsigned int>(packet->data[packet_size - 1]));
 
             return false;
         }
