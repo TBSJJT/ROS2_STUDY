@@ -62,7 +62,7 @@ def _valid_route() -> str:
     - routes：路线字典
       - target_gas：目标气体类型
       - alarm_threshold：报警阈值
-      - default_dwell_sec：全局默认停留时间（航点可覆盖）
+      - default_dwell_sec：全局默认静止观察时间（航点可覆盖）
       - navigation_timeout_sec：导航超时
       - waypoints：航点列表
 

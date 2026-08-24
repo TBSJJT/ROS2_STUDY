@@ -4,4 +4,6 @@ resolution: 0.05
 origin: [-10.13, -7.88, 0]
 negate: 0
 occupied_thresh: 0.65
-free_thresh: 0.25
+# 205 灰度是地图保存器写入的未知区域。阈值设为 0.196，
+# 可避免 Nav2 重新加载地图时把未知区域误判为空闲区域。
+free_thresh: 0.196

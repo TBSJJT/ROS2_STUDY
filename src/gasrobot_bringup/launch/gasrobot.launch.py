@@ -169,6 +169,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             "route_file": inspection_route_file,
+            "map": map_file,
             "default_route": default_route,
             "auto_set_initial_pose": auto_set_initial_pose,
             "auto_start": auto_start_inspection,

@@ -1,56 +1,110 @@
 # ============================================================================
-# GasRobot 巡检场地与路线配置模板
+# GasRobot 中间直走廊巡检路线
 #
-# 使用方法：
-#   1. 在 RViz 中确认机器人初始化位姿和每个巡检点；
-#   2. 将 map 坐标系中的 x、y 和朝向填写到本文件；
-#   3. 完成实地核验后，把 site_configured 改为 true；
-#   4. 未完成标定时节点会拒绝启动，防止机器人驶向模板零坐标。
+# 本路线只用于 gasrobot_map.yaml 中间直走廊的首轮实车测试。
+# 航点负责引导 Nav2 形成缓和的之字形覆盖路径，不负责触发气体采样。
+# gasrobot_gas 应在机器人运动、转弯和短暂停车期间持续发布带时间戳的数据。
 #
-# yaw_deg 使用角度，逆时针为正；节点会自动转换为 ROS 使用的四元数。
+# 坐标已按地图栅格做 0.30 米最小安全距离检查，但首次实车运行仍应：
+#   1. 在 RViz 中确认机器人定位和全部航点；
+#   2. 低速运行并准备随时取消；
+#   3. 确认现场与建图时没有新增障碍物。
 # ============================================================================
 version: 1
 frame_id: map
 site_configured: true
 
-# AMCL 初始化位姿。只有机器人每次都从固定停靠位上电时才建议自动发布。
+# 仅作为固定停靠位的候选值。默认启动配置不会自动发送该位姿，
+# 实车测试应先在 RViz 中使用“2D Pose Estimate”确认定位。
 initial_pose:
   x: 0.0
   y: 0.0
   yaw_deg: 0.0
   covariance:
-    
-    # 协方差，分别对应 PoseWithCovariance 的 x、y 和 yaw 对角项。
     x: 0.25
     y: 0.25
     yaw: 0.0685
 
 routes:
   standard_route:
-    description: 当前场地气体巡检路线
-    target_gas: methane
-    alarm_threshold: 1000.0
+    description: 中间直走廊之字形往返巡检
+
+    # 当前气体驱动尚未完成定量标定，这两个字段只预留任务接口。
+    # 正常巡检不会根据巡检点触发采样，也不会仅凭该阈值生成正式报警。
+    target_gas: ethanol
+    alarm_threshold: 1.0
     stop_on_critical_risk: true
 
+    # 一圈包含一次向东和一次向西的之字形覆盖。
     repeat_count: 1
-    default_dwell_sec: 5.0
-    max_retries: 2
+    default_dwell_sec: 0.0
+    max_retries: 1
     continue_on_failure: false
     navigation_timeout_sec: 180.0
 
+    # 相邻点横向间隔约 2 米、纵向交替 0.9 米，转向角约 24.2 度。
+    # yaw_deg 指向下一段路径方向，减少每个航点处不必要的原地旋转。
     waypoints:
-      - id: inspection_point_01
-        description: 第一个气体巡检点
-        x: 1.7866
-        y: -1.4502
-        yaw_deg: 0.0
-        dwell_sec: 8.0
+      - id: east_zigzag_01
+        description: 东向之字形起点
+        x: -4.0
+        y: -0.45
+        yaw_deg: 24.23
 
-      - id: inspection_point_02
-        description: 第二个气体巡检点
-        x: -2.1142
-        y: 3.9452
-        yaw_deg: 0.0
-        dwell_sec: 8.0
+      - id: east_zigzag_02
+        x: -2.0
+        y: 0.45
+        yaw_deg: -24.23
 
-        
+      - id: east_zigzag_03
+        x: 0.0
+        y: -0.45
+        yaw_deg: 24.23
+
+      - id: east_zigzag_04
+        x: 2.0
+        y: 0.45
+        yaw_deg: -24.23
+
+      - id: east_zigzag_05
+        x: 4.0
+        y: -0.45
+        yaw_deg: 24.23
+
+      - id: east_zigzag_06
+        description: 东端换向点
+        x: 6.0
+        y: 0.45
+        yaw_deg: -90.0
+
+      - id: west_zigzag_01
+        description: 西向之字形起点
+        x: 6.0
+        y: -0.45
+        yaw_deg: 155.77
+
+      - id: west_zigzag_02
+        x: 4.0
+        y: 0.45
+        yaw_deg: -155.77
+
+      - id: west_zigzag_03
+        x: 2.0
+        y: -0.45
+        yaw_deg: 155.77
+
+      - id: west_zigzag_04
+        x: 0.0
+        y: 0.45
+        yaw_deg: -155.77
+
+      - id: west_zigzag_05
+        x: -2.0
+        y: -0.45
+        yaw_deg: 155.77
+
+      - id: west_zigzag_06
+        description: 一圈巡检结束点
+        x: -4.0
+        y: 0.45
+        yaw_deg: -90.0
