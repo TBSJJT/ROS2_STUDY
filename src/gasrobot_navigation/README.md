@@ -70,27 +70,27 @@ gasrobot_navigation/
 PicoPC；地图会通过 ROS 软件包索引自动定位。
 
 ```bash
-cd /home/book/ros2_study/gasrobot_ws
+cd /userdata/iceice/gasrobot_ws
 source /opt/ros/humble/setup.bash
 
 colcon build --symlink-install --packages-up-to gasrobot_bringup
-source install/setup.bash
+source /userdata/iceice/gasrobot_ws/install/setup.bash
 ```
 
-如果 PicoPC 的工作空间不在 /home/book 下，应把第一行替换为实际路径。
+PicoPC 当前工作空间固定为 /userdata/iceice/gasrobot_ws。
 
 ## 首次实车运行
 
 启动硬件、指定地图、Nav2、RViz 和巡检任务管理器：
 
 ```bash
-cd /home/book/ros2_study/gasrobot_ws
+cd /userdata/iceice/gasrobot_ws
 source /opt/ros/humble/setup.bash
-source install/setup.bash
+source /userdata/iceice/gasrobot_ws/install/setup.bash
 
 ros2 launch gasrobot_bringup gasrobot.launch.py \
   mode:=nav \
-  map:=/home/book/ros2_study/gasrobot_ws/src/gasrobot_gas_mapping/maps/gasrobot_map.yaml \
+  map:=/userdata/iceice/gasrobot_ws/src/gasrobot_gas_mapping/maps/gasrobot_map.yaml \
   enable_inspection:=true \
   enable_rviz:=true \
   auto_set_initial_pose:=false \

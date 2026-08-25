@@ -430,7 +430,7 @@ def load_route_book(path: str) -> RouteBook:
     # --- 文件路径处理 ---
     # Path(path): 创建路径对象(Python 3.4+ 推荐方式)
     # .expanduser(): 展开路径中的 ~ 符号
-    #   例如 ~/routes.yaml → /home/book/routes.yaml
+    #   例如 ~/routes.yaml → 当前用户主目录下的 routes.yaml
     route_path = Path(path).expanduser()
 
     # 检查路径是否指向一个真实存在的文件

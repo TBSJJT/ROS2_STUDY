@@ -537,7 +537,7 @@ map_server:
     # 保持空字符串是正常的：
     # bringup_launch.py会使用命令行的map:=...覆盖该参数。
     # 例如：
-    # map:=/home/book/maps/gasrobot_map.yaml
+    # map:=/userdata/iceice/gasrobot_ws/src/gasrobot_gas_mapping/maps/gasrobot_map.yaml
     yaml_filename: ""
 
 

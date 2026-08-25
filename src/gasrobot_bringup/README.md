@@ -4,6 +4,13 @@ GasRobot 的顶层启动包，组合机器人模型、底盘、雷达、SLAM、N
 
 ## 启动
 
+PicoPC 每个新终端先加载环境：
+
+```bash
+source /opt/ros/humble/setup.bash
+source /userdata/iceice/gasrobot_ws/install/setup.bash
+```
+
 仅启动硬件：
 
 ```bash
@@ -19,14 +26,19 @@ ros2 launch gasrobot_bringup gasrobot.launch.py mode:=slam
 导航：
 
 ```bash
-ros2 launch gasrobot_bringup gasrobot.launch.py mode:=nav
+ros2 launch gasrobot_bringup gasrobot.launch.py \
+  mode:=nav \
+  map:=/userdata/iceice/gasrobot_ws/src/gasrobot_gas_mapping/maps/gasrobot_map.yaml
 ```
 
 无 RViz 的自主巡检：
 
 ```bash
 ros2 launch gasrobot_bringup gasrobot.launch.py \
-  mode:=nav enable_inspection:=true enable_rviz:=false
+  mode:=nav \
+  map:=/userdata/iceice/gasrobot_ws/src/gasrobot_gas_mapping/maps/gasrobot_map.yaml \
+  enable_inspection:=true \
+  enable_rviz:=false
 ```
 
 巡检点、AMCL 初始化位姿和失败策略位于
