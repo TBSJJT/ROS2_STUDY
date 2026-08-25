@@ -28,7 +28,7 @@ ros2 launch gasrobot_bringup gasrobot.launch.py mode:=slam
 ```bash
 ros2 launch gasrobot_bringup gasrobot.launch.py \
   mode:=nav \
-  map:=/userdata/iceice/gasrobot_ws/src/gasrobot_gas_mapping/maps/gasrobot_map.yaml
+  map:=/userdata/iceice/gasrobot_ws/src/gasrobot_gas_mapping/maps/picopc_1.yaml
 ```
 
 无 RViz 的自主巡检：
@@ -36,12 +36,13 @@ ros2 launch gasrobot_bringup gasrobot.launch.py \
 ```bash
 ros2 launch gasrobot_bringup gasrobot.launch.py \
   mode:=nav \
-  map:=/userdata/iceice/gasrobot_ws/src/gasrobot_gas_mapping/maps/gasrobot_map.yaml \
+  map:=/userdata/iceice/gasrobot_ws/src/gasrobot_gas_mapping/maps/picopc_1.yaml \
   enable_inspection:=true \
   enable_rviz:=false
 ```
 
-巡检点、AMCL 初始化位姿和失败策略位于
+当前默认地图和巡检路线已经按 PicoPC 的 `picopc_1.yaml` 配置。巡检点、AMCL
+初始化位姿和失败策略位于
 `gasrobot_navigation/config/inspection_routes.yaml`。首次使用必须完成实地坐标标定，
 并将 `site_configured` 设置为 `true`。
 

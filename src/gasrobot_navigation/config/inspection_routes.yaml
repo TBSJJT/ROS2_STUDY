@@ -1,7 +1,7 @@
 # ============================================================================
-# GasRobot 中间直走廊巡检路线
+# GasRobot PicoPC 实机地图中间直走廊巡检路线
 #
-# 本路线只用于 gasrobot_map.yaml 中间直走廊的首轮实车测试。
+# 本路线只用于 picopc_1.yaml 中间直走廊的首轮实车测试。
 # 航点负责引导 Nav2 形成缓和的之字形覆盖路径，不负责触发气体采样。
 # gasrobot_gas 应在机器人运动、转弯和短暂停车期间持续发布带时间戳的数据。
 #
@@ -17,8 +17,10 @@ site_configured: true
 # 仅作为固定停靠位的候选值。默认启动配置不会自动发送该位姿，
 # 实车测试应先在 RViz 中使用“2D Pose Estimate”确认定位。
 initial_pose:
-  x: 0.0
-  y: 0.0
+  # 该点位于路线西端的宽阔已知自由区，仅作为固定停靠位候选值。
+  # 只有机器人实际停在这里时才允许启用 auto_set_initial_pose。
+  x: 5.5
+  y: 1.95
   yaw_deg: 0.0
   covariance:
     x: 0.25
@@ -42,69 +44,71 @@ routes:
     continue_on_failure: false
     navigation_timeout_sec: 180.0
 
-    # 相邻点横向间隔约 2 米、纵向交替 0.9 米，转向角约 24.2 度。
+    # 相邻点横向间隔约 2 米、纵向交替 0.5 米，转向角约 14.0 度。
+    # 所有点均按 picopc_1.yaml 检查，0.30 米安全半径内为已知自由栅格；
+    # 当前 12 个点的最小静态地图净空约为 0.55 米。
     # yaw_deg 指向下一段路径方向，减少每个航点处不必要的原地旋转。
     waypoints:
       - id: east_zigzag_01
         description: 东向之字形起点
-        x: -4.0
-        y: -0.45
-        yaw_deg: 24.23
+        x: 5.5
+        y: 1.7
+        yaw_deg: 14.04
 
       - id: east_zigzag_02
-        x: -2.0
-        y: 0.45
-        yaw_deg: -24.23
+        x: 7.5
+        y: 2.2
+        yaw_deg: -14.04
 
       - id: east_zigzag_03
-        x: 0.0
-        y: -0.45
-        yaw_deg: 24.23
+        x: 9.5
+        y: 1.7
+        yaw_deg: 14.04
 
       - id: east_zigzag_04
-        x: 2.0
-        y: 0.45
-        yaw_deg: -24.23
+        x: 11.5
+        y: 2.2
+        yaw_deg: -14.04
 
       - id: east_zigzag_05
-        x: 4.0
-        y: -0.45
-        yaw_deg: 24.23
+        x: 13.5
+        y: 1.7
+        yaw_deg: 14.04
 
       - id: east_zigzag_06
         description: 东端换向点
-        x: 6.0
-        y: 0.45
+        x: 15.5
+        y: 2.2
         yaw_deg: -90.0
 
       - id: west_zigzag_01
         description: 西向之字形起点
-        x: 6.0
-        y: -0.45
-        yaw_deg: 155.77
+        x: 15.5
+        y: 1.7
+        yaw_deg: 165.96
 
       - id: west_zigzag_02
-        x: 4.0
-        y: 0.45
-        yaw_deg: -155.77
+        x: 13.5
+        y: 2.2
+        yaw_deg: -165.96
 
       - id: west_zigzag_03
-        x: 2.0
-        y: -0.45
-        yaw_deg: 155.77
+        x: 11.5
+        y: 1.7
+        yaw_deg: 165.96
 
       - id: west_zigzag_04
-        x: 0.0
-        y: 0.45
-        yaw_deg: -155.77
+        x: 9.5
+        y: 2.2
+        yaw_deg: -165.96
 
       - id: west_zigzag_05
-        x: -2.0
-        y: -0.45
-        yaw_deg: 155.77
+        x: 7.5
+        y: 1.7
+        yaw_deg: 165.96
 
       - id: west_zigzag_06
         description: 一圈巡检结束点
-        x: -4.0
-        y: 0.45
+        x: 5.5
+        y: 2.2
         yaw_deg: -90.0

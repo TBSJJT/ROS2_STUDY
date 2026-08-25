@@ -46,7 +46,7 @@ def generate_launch_description():
         [
             FindPackageShare("gasrobot_gas_mapping"),
             "maps",
-            "gasrobot_map.yaml",
+            "picopc_1.yaml",
         ]
     )
     default_slam_params = PathJoinSubstitution(

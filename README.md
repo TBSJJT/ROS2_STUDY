@@ -27,13 +27,13 @@ gasrobot_ws/
 
 ## 当前正常巡检逻辑
 
-当前默认路线只测试 gasrobot_map.yaml 中间的直走廊：
+当前默认路线只测试 PicoPC 实机地图 `picopc_1.yaml` 中间的直走廊：
 
-- 路线范围约为 x=-4.0～6.0 米；
-- y 在 -0.45 米和 0.45 米之间交替；
+- 路线范围约为 x=5.5～15.5 米；
+- y 在 1.7 米和 2.2 米之间交替；
 - 向东 6 个点、向西 6 个点，共 12 个之字形航点；
 - 默认执行一圈往返；
-- 线速度上限为 0.10 m/s；
+- 线速度上限为 0.15 m/s；
 - 所有航点的 dwell_sec 均为 0，到点后立即发送下一目标；
 - Nav2 禁止规划进入未知区域；
 - 启动前要求每个航点周围至少 0.30 米为已知自由栅格。
@@ -73,7 +73,7 @@ source /userdata/iceice/gasrobot_ws/install/setup.bash
 
 ros2 launch gasrobot_bringup gasrobot.launch.py \
   mode:=nav \
-  map:=/userdata/iceice/gasrobot_ws/src/gasrobot_gas_mapping/maps/gasrobot_map.yaml \
+  map:=/userdata/iceice/gasrobot_ws/src/gasrobot_gas_mapping/maps/picopc_1.yaml \
   enable_inspection:=true \
   inspection_route_file:=/userdata/iceice/gasrobot_ws/src/gasrobot_navigation/config/inspection_routes.yaml \
   default_route:=standard_route \
@@ -185,7 +185,7 @@ ros2 service call /inspection_manager/reload_routes std_srvs/srv/Trigger '{}'
 - YAML 字段是否合法；
 - 航点 ID 是否唯一；
 - 坐标系是否为 map；
-- 航点是否位于 gasrobot_map.yaml 的已知自由区域；
+- 航点是否位于 picopc_1.yaml 的已知自由区域；
 - 航点周围 0.30 米是否具有足够净空。
 
 安全检查失败时禁止通过降低净空参数强行运行，应在 RViz 中重新选择点位。
@@ -230,7 +230,7 @@ colcon test-result --verbose
 
 ## 安全要求
 
-1. 首次运行必须打开 RViz，并保持 0.10 m/s 低速；
+1. 首次运行必须打开 RViz，并保持 0.15 m/s 限速；
 2. 启动任务前确认地图、LaserScan、TF 和机器人实际位置一致；
 3. 机器人运动范围内不得站人，并确保取消命令随时可用；
 4. 定位跳变、路径异常或现场出现新增障碍物时立即取消任务；

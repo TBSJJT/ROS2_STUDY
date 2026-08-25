@@ -15,7 +15,7 @@
 #   配置中四周各额外预留约 1 cm，因此 footprint 为 0.32 m × 0.325 m
 #
 # 重要提醒：
-#   controller_server 与 velocity_smoother 的线速度上限均为 0.10 m/s，
+#   controller_server 与 velocity_smoother 的线速度上限均为 0.15 m/s，
 #   修改巡检速度时必须同步修改两处，避免控制器和速度平滑器限值不一致。
 # =====================================================================
 
@@ -272,19 +272,19 @@ controller_server:
 
       # x方向最小/最大速度，单位m/s
       min_vel_x: 0.0
-      # 首轮中间走廊巡检限速为0.10 m/s，便于观察路径和连续气体数据。
-      max_vel_x: 0.10
+      # PicoPC 中间走廊巡检限速为0.15 m/s。
+      max_vel_x: 0.15
 
-      # 麦克纳姆底盘允许y方向横移，首轮测试同样限制为0.10 m/s。
-      min_vel_y: -0.10
-      max_vel_y: 0.10
+      # 麦克纳姆底盘允许y方向横移，平移速度同样限制为0.15 m/s。
+      min_vel_y: -0.15
+      max_vel_y: 0.15
 
       # 最大角速度，单位rad/s
       max_vel_theta: 0.4
 
       # 平面合速度上下限
       min_speed_xy: 0.0
-      max_speed_xy: 0.10
+      max_speed_xy: 0.15
 
       # 最小角速度设为0，允许控制器输出很小角速度
       min_speed_theta: 0.0
@@ -537,7 +537,7 @@ map_server:
     # 保持空字符串是正常的：
     # bringup_launch.py会使用命令行的map:=...覆盖该参数。
     # 例如：
-    # map:=/userdata/iceice/gasrobot_ws/src/gasrobot_gas_mapping/maps/gasrobot_map.yaml
+    # map:=/userdata/iceice/gasrobot_ws/src/gasrobot_gas_mapping/maps/picopc_1.yaml
     yaml_filename: ""
 
 
@@ -705,8 +705,8 @@ velocity_smoother:
 
     # [linear.x, linear.y, angular.z]
     # 与 DWB 的首轮巡检限速保持一致。
-    max_velocity: [0.10, 0.10, 0.40]
-    min_velocity: [-0.10, -0.10, -0.40]
+    max_velocity: [0.15, 0.15, 0.40]
+    min_velocity: [-0.15, -0.15, -0.40]
 
     # 最大加速度和减速度
     max_accel: [0.30, 0.30, 0.80]

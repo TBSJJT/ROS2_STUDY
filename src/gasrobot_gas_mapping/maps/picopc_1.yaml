@@ -4,4 +4,7 @@ resolution: 0.05
 origin: [-0.924, -6.47, 0]
 negate: 0
 occupied_thresh: 0.65
+# 地图保存器使用 205 灰度表示未知区域。该阈值确保 205 不会被当作自由区，
+# 并与巡检路线安全校验器和 Nav2 对未知区域的处理保持一致。
+free_thresh: 0.196
 free_thresh: 0.25

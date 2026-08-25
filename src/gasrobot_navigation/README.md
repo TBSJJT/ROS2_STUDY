@@ -32,14 +32,15 @@ GasRobot 的 Nav2 配置与自主巡检任务软件包。当前版本已经实�
 
 配置文件：config/inspection_routes.yaml
 
-路线只覆盖 gasrobot_map.yaml 的中间直走廊：
+路线只覆盖 PicoPC 实机地图 `picopc_1.yaml` 的中间直走廊：
 
-- X 范围约为 -4.0～6.0 米；
-- Y 在 -0.45 米与 0.45 米之间交替；
+- X 范围约为 5.5～15.5 米；
+- Y 在 1.7 米与 2.2 米之间交替；
 - 向东 6 个点、向西 6 个点，共 12 个点；
 - 一圈包含一次完整的之字形往返；
 - 所有航点的 dwell_sec 均为 0；
-- 首轮线速度限制为 0.10 m/s。
+- 巡检线速度限制为 0.15 m/s；
+- 12 个航点的最小静态地图净空约为 0.55 米。
 
 这些点已通过静态栅格检查，但静态地图无法识别建图后新增的障碍物。首次实车运行
 必须打开 RViz、确认 AMCL 定位和代价地图，并准备随时调用取消服务。
@@ -90,7 +91,7 @@ source /userdata/iceice/gasrobot_ws/install/setup.bash
 
 ros2 launch gasrobot_bringup gasrobot.launch.py \
   mode:=nav \
-  map:=/userdata/iceice/gasrobot_ws/src/gasrobot_gas_mapping/maps/gasrobot_map.yaml \
+  map:=/userdata/iceice/gasrobot_ws/src/gasrobot_gas_mapping/maps/picopc_1.yaml \
   enable_inspection:=true \
   enable_rviz:=true \
   auto_set_initial_pose:=false \
