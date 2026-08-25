@@ -17,6 +17,8 @@ GasRobot 的 Nav2 配置与自主巡检任务软件包。当前版本已经实�
 ## 当前实现
 
 - 复用 Nav2 的定位、规划、避障和运动控制；
+- AMCL 使用 `DifferentialMotionModel`，按普通差速底盘估计运动；
+- DWB 和速度平滑器均禁止 `linear.y` 横移，只输出前后速度和角速度；
 - 使用标准 NavigateToPose Action 逐点执行路线；
 - 启动前校验路线 YAML、地图坐标系和点位安全距离；
 - 点位必须位于指定地图的已知自由区域；
@@ -34,13 +36,14 @@ GasRobot 的 Nav2 配置与自主巡检任务软件包。当前版本已经实�
 
 路线只覆盖 PicoPC 实机地图 `picopc_1.yaml` 的中间直走廊：
 
-- X 范围约为 5.5～15.5 米；
-- Y 在 1.7 米与 2.2 米之间交替；
+- X 范围约为 5.40～12.37 米；
+- 走廊轴线相对 map 的 X 轴倾斜约 4.31°；
+- 六个纵向站位等间隔约 1.387 米，上下轨间距为 0.80 米；
 - 向东 6 个点、向西 6 个点，共 12 个点；
 - 一圈包含一次完整的之字形往返；
 - 所有航点的 dwell_sec 均为 0；
 - 巡检线速度限制为 0.15 m/s；
-- 12 个航点的最小静态地图净空约为 0.55 米。
+- 航点及相邻折线的最小静态地图净空约为 0.50 米。
 
 这些点已通过静态栅格检查，但静态地图无法识别建图后新增的障碍物。首次实车运行
 必须打开 RViz、确认 AMCL 定位和代价地图，并准备随时调用取消服务。
@@ -74,7 +77,7 @@ PicoPC；地图会通过 ROS 软件包索引自动定位。
 cd /userdata/iceice/gasrobot_ws
 source /opt/ros/humble/setup.bash
 
-colcon build --symlink-install --packages-up-to gasrobot_bringup
+colcon build --packages-up-to gasrobot_bringup
 source /userdata/iceice/gasrobot_ws/install/setup.bash
 ```
 
@@ -176,7 +179,7 @@ ros2 topic echo /gas/readings
 ## 调整路线
 
 在 config/inspection_routes.yaml 中修改 x、y、yaw_deg 和路线执行策略。修改后重新
-编译，或在 --symlink-install 工作空间中调用 reload_routes。
+编译 gasrobot_navigation，再调用 reload_routes 重新加载已安装配置。
 
 如果任何航点位于未知区、障碍物、地图外，或周围 0.30 米净空不足，任务管理节点会
 拒绝启动并给出具体航点 ID。禁止为了让错误路线通过而直接关闭安全校验，应先在

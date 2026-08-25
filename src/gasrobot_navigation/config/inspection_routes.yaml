@@ -19,9 +19,9 @@ site_configured: true
 initial_pose:
   # 该点位于路线西端的宽阔已知自由区，仅作为固定停靠位候选值。
   # 只有机器人实际停在这里时才允许启用 auto_set_initial_pose。
-  x: 5.5
-  y: 1.95
-  yaw_deg: 0.0
+  x: 5.399
+  y: 1.920
+  yaw_deg: -25.67
   covariance:
     x: 0.25
     y: 0.25
@@ -44,71 +44,71 @@ routes:
     continue_on_failure: false
     navigation_timeout_sec: 180.0
 
-    # 相邻点横向间隔约 2 米、纵向交替 0.5 米，转向角约 14.0 度。
-    # 所有点均按 picopc_1.yaml 检查，0.30 米安全半径内为已知自由栅格；
-    # 当前 12 个点的最小静态地图净空约为 0.55 米。
+    # 根据 RViz 点击的12个实测点拟合走廊轴线，轴线相对 map 的X轴倾斜约4.31度。
+    # 六个纵向站位沿走廊轴线等间隔约1.387米，上下轨间距统一为0.80米。
+    # 所有点及相邻折线均按 picopc_1.yaml 检查，最小静态地图净空约0.50米。
     # yaw_deg 指向下一段路径方向，减少每个航点处不必要的原地旋转。
     waypoints:
       - id: east_zigzag_01
         description: 东向之字形起点
-        x: 5.5
-        y: 1.7
-        yaw_deg: 14.04
+        x: 5.399
+        y: 1.920
+        yaw_deg: -25.67
 
       - id: east_zigzag_02
-        x: 7.5
-        y: 2.2
-        yaw_deg: -14.04
+        x: 6.842
+        y: 1.226
+        yaw_deg: 34.30
 
       - id: east_zigzag_03
-        x: 9.5
-        y: 1.7
-        yaw_deg: 14.04
+        x: 8.164
+        y: 2.128
+        yaw_deg: -25.67
 
       - id: east_zigzag_04
-        x: 11.5
-        y: 2.2
-        yaw_deg: -14.04
+        x: 9.607
+        y: 1.435
+        yaw_deg: 34.30
 
       - id: east_zigzag_05
-        x: 13.5
-        y: 1.7
-        yaw_deg: 14.04
+        x: 10.930
+        y: 2.337
+        yaw_deg: -25.67
 
       - id: east_zigzag_06
         description: 东端换向点
-        x: 15.5
-        y: 2.2
-        yaw_deg: -90.0
+        x: 12.372
+        y: 1.643
+        yaw_deg: 94.31
 
       - id: west_zigzag_01
         description: 西向之字形起点
-        x: 15.5
-        y: 1.7
-        yaw_deg: 165.96
+        x: 12.312
+        y: 2.441
+        yaw_deg: -145.70
 
       - id: west_zigzag_02
-        x: 13.5
-        y: 2.2
-        yaw_deg: -165.96
+        x: 10.990
+        y: 1.539
+        yaw_deg: 154.33
 
       - id: west_zigzag_03
-        x: 11.5
-        y: 1.7
-        yaw_deg: 165.96
+        x: 9.547
+        y: 2.232
+        yaw_deg: -145.70
 
       - id: west_zigzag_04
-        x: 9.5
-        y: 2.2
-        yaw_deg: -165.96
+        x: 8.225
+        y: 1.330
+        yaw_deg: 154.33
 
       - id: west_zigzag_05
-        x: 7.5
-        y: 1.7
-        yaw_deg: 165.96
+        x: 6.782
+        y: 2.024
+        yaw_deg: -145.70
 
       - id: west_zigzag_06
-        description: 一圈巡检结束点
-        x: 5.5
-        y: 2.2
-        yaw_deg: -90.0
+        description: 一圈巡检结束点，保持入点方向停车
+        x: 5.459
+        y: 1.122
+        yaw_deg: -145.70

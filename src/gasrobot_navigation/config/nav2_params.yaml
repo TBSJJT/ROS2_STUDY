@@ -5,7 +5,7 @@
 #   1. ROS 2 Humble
 #   2. 已保存地图 + AMCL 定位 + Nav2 单点导航
 #   3. 实车运行，因此 use_sim_time 必须为 false
-#   4. 当前先把麦克纳姆底盘按“差速底盘”使用，不启用 linear.y 横移
+#   4. 导航运动模型按普通差速底盘配置，禁止 linear.y 横移
 #
 # 当前坐标链预期为：
 #   map -> odom -> base_footprint -> base_link -> laser_link
@@ -93,10 +93,8 @@ amcl:
     resample_interval: 1
 
     # 当前使用差速运动模型。
-    # 虽然底盘是麦克纳姆轮，但首次导航关闭了linear.y，可先按差速模式测试。
-    # robot_model_type: "nav2_amcl::DifferentialMotionModel"
-    # 麦克纳姆轮属于全向底盘
-    robot_model_type: "nav2_amcl::OmniMotionModel"
+    # 普通差速底盘只能前后平移和绕Z轴旋转，使用差速里程计运动模型。
+    robot_model_type: "nav2_amcl::DifferentialMotionModel"
     # 每秒保存上次定位姿态的频率
     save_pose_rate: 0.5
 
@@ -275,9 +273,9 @@ controller_server:
       # PicoPC 中间走廊巡检限速为0.15 m/s。
       max_vel_x: 0.15
 
-      # 麦克纳姆底盘允许y方向横移，平移速度同样限制为0.15 m/s。
-      min_vel_y: -0.15
-      max_vel_y: 0.15
+      # 普通差速底盘不具备横移能力，必须把y方向速度严格限制为0。
+      min_vel_y: 0.0
+      max_vel_y: 0.0
 
       # 最大角速度，单位rad/s
       max_vel_theta: 0.4
@@ -292,18 +290,20 @@ controller_server:
       # 最大加速度，单位：
       # x/y为m/s²，theta为rad/s²
       acc_lim_x: 0.3
-      acc_lim_y: 0.3
+      # 差速底盘不产生y方向加速度。
+      acc_lim_y: 0.0
       acc_lim_theta: 0.8
 
       # 最大减速度使用负数表示
       decel_lim_x: -0.3
-      decel_lim_y: -0.30
+      decel_lim_y: 0.0
       decel_lim_theta: -0.8
 
       # 在速度空间中采样的候选数量。
       # 数量越大轨迹搜索更细，但CPU开销更高。
       vx_samples: 20
-      vy_samples: 5
+      # y方向固定为0，只保留一个采样值，减少无意义的轨迹搜索。
+      vy_samples: 1
       vtheta_samples: 20
 
       # 每条候选速度向前仿真的时长，单位秒
@@ -705,12 +705,12 @@ velocity_smoother:
 
     # [linear.x, linear.y, angular.z]
     # 与 DWB 的首轮巡检限速保持一致。
-    max_velocity: [0.15, 0.15, 0.40]
-    min_velocity: [-0.15, -0.15, -0.40]
+    max_velocity: [0.15, 0.0, 0.40]
+    min_velocity: [-0.15, 0.0, -0.40]
 
     # 最大加速度和减速度
-    max_accel: [0.30, 0.30, 0.80]
-    max_decel: [-0.30, -0.30, -0.80]
+    max_accel: [0.30, 0.0, 0.80]
+    max_decel: [-0.30, 0.0, -0.80]
 
     # 若以后改为CLOSED_LOOP，会使用此里程计话题反馈
     odom_topic: "odom"

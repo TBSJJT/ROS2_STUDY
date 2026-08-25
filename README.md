@@ -4,6 +4,9 @@
 麦克纳姆底盘通信、机器人模型、激光雷达、SLAM、AMCL、Nav2 和中间直走廊的
 之字形正常巡检框架。
 
+当前 Nav2 运动模型已按普通差速底盘配置：导航只使用 `linear.x` 和 `angular.z`，
+`linear.y` 横移速度、加速度及轨迹采样均被禁用。
+
 PicoPC 上的工作空间固定为：
 
 ```text
@@ -68,14 +71,16 @@ gasrobot_ws/
 
 当前默认路线只测试 PicoPC 实机地图 `picopc_1.yaml` 中间的直走廊：
 
-- 路线范围约为 x=5.5～15.5 米；
-- y 在 1.7 米和 2.2 米之间交替；
+- 路线范围约为 x=5.40～12.37 米；
+- 走廊轴线倾斜约 4.31°，六个纵向站位等间隔约 1.387 米；
+- 上下轨间距统一为 0.80 米，避免按水平坐标排列造成路线偏斜；
 - 向东 6 个点、向西 6 个点，共 12 个之字形航点；
 - 默认执行一圈往返；
 - 线速度上限为 0.15 m/s；
 - 所有航点的 dwell_sec 均为 0，到点后立即发送下一目标；
 - Nav2 禁止规划进入未知区域；
 - 启动前要求每个航点周围至少 0.30 米为已知自由栅格。
+- 当前航点及相邻折线在静态地图上的最小净空约为 0.50 米。
 
 航点只负责控制 Nav2 的覆盖路线，不负责触发气体采样。gasrobot_gas 后续必须在
 机器人运动、转弯和短暂停车期间持续发布带时间戳的 /gas/readings。实际采样位置
@@ -89,7 +94,7 @@ gasrobot_ws/
 cd /userdata/iceice/gasrobot_ws
 source /opt/ros/humble/setup.bash
 
-colcon build --symlink-install --packages-up-to gasrobot_bringup
+colcon build --packages-up-to gasrobot_bringup
 
 source /opt/ros/humble/setup.bash
 source /userdata/iceice/gasrobot_ws/install/setup.bash
