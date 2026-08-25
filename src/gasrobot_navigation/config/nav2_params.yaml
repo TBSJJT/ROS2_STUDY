@@ -15,9 +15,8 @@
 #   配置中四周各额外预留约 1 cm，因此 footprint 为 0.32 m × 0.325 m
 #
 # 重要提醒：
-#   controller_server 中 max_vel_x = 0.20 m/s，
-#   但 velocity_smoother 中 max_velocity[0] = 0.10 m/s。
-#   如果 velocity_smoother 处于最终速度链路中，实际线速度仍会被限制到 0.10 m/s。
+#   controller_server 与 velocity_smoother 的线速度上限均为 0.10 m/s，
+#   修改巡检速度时必须同步修改两处，避免控制器和速度平滑器限值不一致。
 # =====================================================================
 
 
@@ -268,17 +267,16 @@ controller_server:
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
 
-      # 输出更多轨迹评价信息，调试时有用，但日志量会增加
-      debug_trajectory_details: True
+      # 生产运行默认关闭轨迹评价调试输出，需要调参时再临时开启
+      debug_trajectory_details: False
 
       # x方向最小/最大速度，单位m/s
       min_vel_x: 0.0
-      max_vel_x: 0.20
+      # 首轮中间走廊巡检限速为0.10 m/s，便于观察路径和连续气体数据。
+      max_vel_x: 0.10
 
-      # 当前关闭y方向横移，先按差速底盘方式导航
+      # 麦克纳姆底盘允许y方向横移，首轮测试同样限制为0.10 m/s。
       min_vel_y: -0.10
-      # min_vel_y: 0.0
-      # max_vel_y: 0.0
       max_vel_y: 0.10
 
       # 最大角速度，单位rad/s
@@ -286,7 +284,7 @@ controller_server:
 
       # 平面合速度上下限
       min_speed_xy: 0.0
-      max_speed_xy: 0.20
+      max_speed_xy: 0.10
 
       # 最小角速度设为0，允许控制器输出很小角速度
       min_speed_theta: 0.0
@@ -415,8 +413,8 @@ local_costmap:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: True
 
-        # 发布体素地图供RViz查看，会增加一定通信负担
-        publish_voxel_map: True
+        # 轻量 RViz 不订阅体素点云，默认不发布以减少虚拟机通信与渲染负担
+        publish_voxel_map: False
 
         # 体素层从z=0开始
         origin_z: 0.0
@@ -539,7 +537,7 @@ map_server:
     # 保持空字符串是正常的：
     # bringup_launch.py会使用命令行的map:=...覆盖该参数。
     # 例如：
-    # map:=/home/book/maps/gasrobot_map.yaml
+    # map:=/userdata/iceice/gasrobot_ws/src/gasrobot_gas_mapping/maps/gasrobot_map.yaml
     yaml_filename: ""
 
 
@@ -585,8 +583,8 @@ planner_server:
       # false使用Dijkstra；true使用A*
       use_astar: false
 
-      # 允许规划进入未知区域
-      allow_unknown: true
+      # 实车巡检禁止穿越未知区域，避免规划器从灰色区域抄近路。
+      allow_unknown: false
 
 
 # =====================================================================
@@ -706,9 +704,9 @@ velocity_smoother:
     feedback: "OPEN_LOOP"
 
     # [linear.x, linear.y, angular.z]
-    # 注意：这里linear.x最大只有0.20 m/s，
-    max_velocity: [0.20, 0.10, 0.40]
-    min_velocity: [-0.20, -0.10, -0.40]
+    # 与 DWB 的首轮巡检限速保持一致。
+    max_velocity: [0.10, 0.10, 0.40]
+    min_velocity: [-0.10, -0.10, -0.40]
 
     # 最大加速度和减速度
     max_accel: [0.30, 0.30, 0.80]

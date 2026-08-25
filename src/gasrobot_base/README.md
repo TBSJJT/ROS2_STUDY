@@ -71,9 +71,9 @@ STM32 已经使用 IMU 姿态算法积分得到 `Yaw`，因此 `/odom` 的航向
 
 ```bash
 source /opt/ros/humble/setup.bash
-source /home/book/ros2_study/gasrobot_ws/install/setup.bash
+source /userdata/iceice/gasrobot_ws/install/setup.bash
 ros2 run gasrobot_base stm32_bridge --ros-args \
-  --params-file /home/book/ros2_study/gasrobot_ws/install/gasrobot_base/share/gasrobot_base/config/stm32_bridge.yaml
+  --params-file /userdata/iceice/gasrobot_ws/install/gasrobot_base/share/gasrobot_base/config/stm32_bridge.yaml
 ```
 
 主要参数位于 `config/stm32_bridge.yaml`，包括串口、话题、坐标系、速度限幅、
@@ -82,7 +82,9 @@ ros2 run gasrobot_base stm32_bridge --ros-args \
 ## 测试
 
 ```bash
-cd /home/book/ros2_study/gasrobot_ws
+cd /userdata/iceice/gasrobot_ws
+source /opt/ros/humble/setup.bash
+source /userdata/iceice/gasrobot_ws/install/setup.bash
 colcon test --packages-select gasrobot_base
 colcon test-result --verbose
 ```

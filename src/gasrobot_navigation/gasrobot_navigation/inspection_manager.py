@@ -156,6 +156,9 @@ from gasrobot_interfaces.msg import GasSensorArray, RiskEvent
 # =========================================================================
 # 路线配置模块导入
 # =========================================================================
+from gasrobot_navigation.map_route_validator import (
+    validate_route_book_against_map,
+)
 from gasrobot_navigation.route_config import (
     InspectionRoute,
     InspectionWaypoint,
@@ -180,7 +183,7 @@ class MissionState(str, Enum):
     - INITIALIZING:  正在初始化(如设置 AMCL 初始位姿)
     - WAITING_NAV2:  等待 Nav2 导航栈就绪
     - NAVIGATING:    正在向一个航点导航
-    - DWELLING:      已到达航点, 正在停留进行气体采样
+    - DWELLING:      已到达航点, 正在执行可选的静止观察
     - PAUSED:        任务已暂停(可继续)
     - CANCELLING:    正在取消任务(等待当前操作安全停止)
     - COMPLETED:     任务已成功完成
@@ -254,6 +257,10 @@ class InspectionManager(Node):
         # route_file: 巡检路线 YAML 文件路径
         #   默认空字符串 → 必须在参数文件或命令行中提供
         self.declare_parameter("route_file", "")
+        # map_file: 与 Nav2 使用同一份地图，用于启动前校验所有航点。
+        self.declare_parameter("map_file", "")
+        # 巡检点中心到障碍物、未知区域或地图边界的最小安全距离。
+        self.declare_parameter("minimum_waypoint_clearance_m", 0.30)
         # default_route: 默认执行的路线名称
         self.declare_parameter("default_route", "standard_route")
         # auto_set_initial_pose: 启动后是否自动向 AMCL 发送初始位姿
@@ -271,6 +278,10 @@ class InspectionManager(Node):
         # 注意需要做类型转换(str/int/float/bool), 
         # 因为 rclpy 参数系统返回的是 ParameterValue 类型
         self.route_file = str(self.get_parameter("route_file").value)
+        self.map_file = str(self.get_parameter("map_file").value)
+        self.minimum_waypoint_clearance_m = float(
+            self.get_parameter("minimum_waypoint_clearance_m").value
+        )
         self.default_route = str(self.get_parameter("default_route").value)
         self.auto_set_initial_pose = bool(
             self.get_parameter("auto_set_initial_pose").value
@@ -289,13 +300,8 @@ class InspectionManager(Node):
         # ============================================================
         # 步骤 3: 加载并校验路线文件
         # ============================================================
-        # load_route_book() 读取 YAML 文件并返回不可变的 RouteBook 对象
-        # 如果文件不存在或内容非法, 会抛出 RouteConfigError
-        self.route_book = load_route_book(self.route_file)
-        # 安全检查: 如果场地坐标仍是模板值(site_configured=false), 拒绝启动
-        self._validate_site_configuration(self.route_book)
-        # 验证默认路线是否存在(不存在会抛出 RouteConfigError)
-        self.route_book.route(self.default_route)
+        # 同时校验路线格式、场地确认标志和地图栅格安全距离。
+        self.route_book = self._load_and_validate_route_book()
 
         # ============================================================
         # 步骤 4: 创建 Action 客户端
@@ -546,6 +552,21 @@ class InspectionManager(Node):
                 "site_configured 改为 true"
             )
 
+    def _load_and_validate_route_book(self) -> RouteBook:
+        """加载路线，并拒绝不属于指定地图已知自由区的点位。"""
+
+        if not self.map_file:
+            raise RouteConfigError("必须通过 map_file 指定 Nav2 使用的地图")
+        route_book = load_route_book(self.route_file)
+        self._validate_site_configuration(route_book)
+        route_book.route(self.default_route)
+        validate_route_book_against_map(
+            route_book,
+            self.map_file,
+            self.minimum_waypoint_clearance_m,
+        )
+        return route_book
+
     # =====================================================================
     # 参数变更回调
     # =====================================================================
@@ -690,11 +711,17 @@ class InspectionManager(Node):
             raise RouteConfigError("Action 巡检路线至少需要一个目标点")
 
         waypoints = []
-        # default_dwell_sec: 路线级默认停留时间
+        # default_dwell_sec: 路线级默认静止观察时间
         default_dwell = max(0.0, float(request.default_dwell_sec))
 
         # enumerate 同时获取索引和值
         for index, pose in enumerate(request.waypoints):
+            frame_id = str(pose.header.frame_id).strip()
+            if frame_id and frame_id != self.route_book.frame_id:
+                raise RouteConfigError(
+                    f"临时巡检点 {index + 1} 的坐标系必须是 "
+                    f"{self.route_book.frame_id}"
+                )
             # 从四元数中提取偏航角(yaw)
             # 四元数 (x, y, z, w) 到偏航角的简化公式: 
             #   yaw = atan2(2*(w*z), 1 - 2*z²)
@@ -718,7 +745,7 @@ class InspectionManager(Node):
             )
 
         # 构造 InspectionRoute, 使用请求中的参数或默认值
-        return InspectionRoute(
+        route = InspectionRoute(
             name="remote_action_route",
             description="通过 ExecuteInspection Action 下发",
             target_gas=request.target_gas or "unknown",
@@ -734,6 +761,19 @@ class InspectionManager(Node):
             ),
             waypoints=waypoints,
         )
+        # 后端临时下发的点也必须经过与本地 YAML 相同的地图安全校验。
+        temporary_book = RouteBook(
+            frame_id=self.route_book.frame_id,
+            site_configured=True,
+            initial_pose=None,
+            routes={route.name: route},
+        )
+        validate_route_book_against_map(
+            temporary_book,
+            self.map_file,
+            self.minimum_waypoint_clearance_m,
+        )
+        return route
 
     # =====================================================================
     # 核心: 路线执行引擎
@@ -751,7 +791,7 @@ class InspectionManager(Node):
                 2. 向 Nav2 发送导航目标(带重试)
                 3. 等待到达或超时
                 4. 如果不成功且 continue_on_failure=False → 任务失败
-                5. 如果成功 → 停留 dwell_sec 秒采样
+                5. 如果配置了 dwell_sec → 执行可选的静止观察
                 6. 继续下一个航点
 
         参数:
@@ -820,11 +860,12 @@ class InspectionManager(Node):
                         len(route.waypoints) * route.repeat_count,
                     )
 
-                    # --- 到达后停留采样 ---
+                    # 气体节点在整个任务期间连续采样；这里的停留不是采样开关，
+                    # 只用于响应实验或重点区域需要静止观察的情况。
                     if waypoint.dwell_sec > 0.0:
                         self._set_state(
                             MissionState.DWELLING,
-                            f"在 {waypoint.waypoint_id} 停留采样",
+                            f"在 {waypoint.waypoint_id} 静止观察",
                         )
                         # 可中断的等待(支持暂停/取消/安全停机)
                         if not await self._interruptible_wait(
@@ -1278,12 +1319,9 @@ class InspectionManager(Node):
                 response.message = "巡检执行中不能重新加载路线"
                 return response
         try:
-            route_book = load_route_book(self.route_file)
-            self._validate_site_configuration(route_book)
-            route_book.route(self.default_route)  # 验证默认路线存在
-            self.route_book = route_book
+            self.route_book = self._load_and_validate_route_book()
             response.success = True
-            response.message = "巡检路线已重新加载"
+            response.message = "巡检路线已重新加载并通过地图安全校验"
         except RouteConfigError as exc:
             response.success = False
             response.message = str(exc)
@@ -1434,7 +1472,11 @@ class InspectionManager(Node):
         """
         提取当前任务目标气体的浓度数据, 供 Action Feedback 和后端显示.
 
-        气体传感器会持续发布 GasSensorArray 消息, 包含多种气体的读数.
+        气体传感器节点应独立、连续发布 GasSensorArray 消息，不能等机器人
+        到达巡检点后才采样。航点只约束运动路线，实际采样位置由消息时间戳
+        对应的 TF 历史位姿确定。
+
+        GasSensorArray 可以包含多种气体的读数.
         这个回调只提取与当前任务目标气体匹配的读数.
 
         如果浓度超过报警阈值, 自动提升当前风险等级(至少为 1), 

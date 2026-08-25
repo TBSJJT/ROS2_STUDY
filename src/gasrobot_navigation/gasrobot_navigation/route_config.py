@@ -117,18 +117,21 @@ class InitialPoseConfig(Pose2DConfig):
 @dataclass(frozen=True)
 class InspectionWaypoint(Pose2DConfig):
     """
-    一个带有业务名称和停留时间的巡检航点.
+    一个带有业务名称和可选静止观察时间的巡检航点.
 
     巡检航点不同于普通的导航目标点: 
     - waypoint_id: 唯一标识, 用于关联气体传感器读数
     - description: 人类可读描述(如"阀门区 3 号位")
-    - dwell_sec: 到达后停留采样的时间(秒)
-      气体传感器需要一定时间响应, 停留可以采集更准确的数据
+    - dwell_sec: 到达后是否额外静止观察
+
+    气体采样由 gasrobot_gas 按固定频率连续完成，不受航点到达事件控制。
+    正常覆盖巡检应使用 dwell_sec=0；传感器响应实验或重点区域复测时，
+    才按实验设计配置非零停留时间。
 
     属性:
         waypoint_id: 航点唯一标识符(如 "point_a", "valve_03")
         description: 航点描述文本
-        dwell_sec:   到达后停留采样的时间(秒), 0 表示不停留
+        dwell_sec:   到达后的静止观察时间(秒), 0 表示直接前往下一点
 
     """
 
@@ -143,8 +146,8 @@ class InspectionRoute:
     一条可重复执行并带有失败处理策略的巡检路线.
 
     一条路线 = 一个有序的航点列表 + 执行策略.
-    机器人会从第一个航点开始, 依次导航到每个航点, 
-    在每个航点停留 dwell_sec 秒进行气体采样.
+    机器人会从第一个航点开始依次导航；与此同时，气体传感器始终连续
+    采样。dwell_sec 只是可选的静止观察策略，不是采样触发条件。
 
     关键策略参数: 
     - repeat_count: 路线执行圈数
@@ -352,7 +355,7 @@ def _nonnegative_number(mapping: Mapping, key: str, context: str) -> float:
     """
     读取大于或等于零的有限数值字段.
 
-    用于检查像 default_dwell_sec(默认停留时间)、max_retries(重试次数)等
+    用于检查像 default_dwell_sec(默认静止观察时间)、max_retries(重试次数)等
     不能为负但可以为 0 的参数.
 
     """
@@ -427,7 +430,7 @@ def load_route_book(path: str) -> RouteBook:
     # --- 文件路径处理 ---
     # Path(path): 创建路径对象(Python 3.4+ 推荐方式)
     # .expanduser(): 展开路径中的 ~ 符号
-    #   例如 ~/routes.yaml → /home/book/routes.yaml
+    #   例如 ~/routes.yaml → 当前用户主目录下的 routes.yaml
     route_path = Path(path).expanduser()
 
     # 检查路径是否指向一个真实存在的文件
@@ -509,7 +512,7 @@ def load_route_book(path: str) -> RouteBook:
         # 路线配置必须是映射
         value = _mapping(route_raw, f"routes.{name}")
 
-        # 默认停留时间(可被单个航点覆盖)
+        # 默认静止观察时间(可被单个航点覆盖，正常巡检建议为 0)
         default_dwell = _nonnegative_number(
             value, "default_dwell_sec", f"routes.{name}"
         )
@@ -545,7 +548,7 @@ def load_route_book(path: str) -> RouteBook:
             # 解析位姿(x, y, yaw_deg)
             x, y, yaw = _pose(waypoint, context)
 
-            # 停留时间: 优先用航点自己的, 否则用路线默认值
+            # 静止观察时间: 优先用航点自己的, 否则用路线默认值
             dwell_sec = float(waypoint.get("dwell_sec", default_dwell))
             # 停留时间不能为负
             if not math.isfinite(dwell_sec) or dwell_sec < 0.0:

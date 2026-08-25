@@ -46,13 +46,15 @@ def generate_launch_description():
     声明巡检配置参数并启动 inspection_manager 节点。
 
     返回值是一个 LaunchDescription，包含：
-    1. 5 个命令行可配置的参数声明
+    1. 6 个命令行可配置的参数声明
     2. 1 个节点启动描述
 
     参数说明：
     - route_file：巡检路线 YAML 文件的路径
       默认值：gasrobot_navigation 包目录下的 config/inspection_routes.yaml
       这是运行巡检任务必需的配置文件
+
+    - map：必须与 Nav2 使用同一份地图，用于启动前校验航点安全性
 
     - params_file：节点参数 YAML 文件
       默认值：gasrobot_navigation 包目录下的 config/inspection_manager.yaml
@@ -75,6 +77,7 @@ def generate_launch_description():
     # 每个 LaunchConfiguration 对应一个可配置的参数
     # 在后续的 Node 描述中通过这些对象引用参数值
     route_file = LaunchConfiguration("route_file")
+    map_file = LaunchConfiguration("map")
     params_file = LaunchConfiguration("params_file")
     default_route = LaunchConfiguration("default_route")
     auto_set_initial_pose = LaunchConfiguration("auto_set_initial_pose")
@@ -107,6 +110,14 @@ def generate_launch_description():
         ]
     )
 
+    default_map = PathJoinSubstitution(
+        [
+            FindPackageShare("gasrobot_gas_mapping"),
+            "maps",
+            "gasrobot_map.yaml",
+        ]
+    )
+
     # --- 创建 Node 描述 ---
     # Node 对象描述一个要启动的 ROS 2 节点
     inspection_manager = Node(
@@ -128,6 +139,7 @@ def generate_launch_description():
             {
                 # 以下参数可以在命令行覆盖
                 "route_file": route_file,
+                "map_file": map_file,
                 "default_route": default_route,
                 "auto_set_initial_pose": auto_set_initial_pose,
                 "auto_start": auto_start,
@@ -148,6 +160,11 @@ def generate_launch_description():
                 "route_file",
                 default_value=default_routes,
                 description="初始化位姿和命名巡检路线 YAML 文件路径。",
+            ),
+            DeclareLaunchArgument(
+                "map",
+                default_value=default_map,
+                description="与 Nav2 一致的地图 YAML，用于巡检点安全校验。",
             ),
             # 声明参数：params_file
             DeclareLaunchArgument(

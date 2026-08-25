@@ -64,7 +64,7 @@ def generate_launch_description():
         ]
     )
     default_rviz_config = PathJoinSubstitution(
-        [FindPackageShare("nav2_bringup"), "rviz", "nav2_default_view.rviz"]
+        [FindPackageShare("gasrobot_bringup"), "config", "gasrobot_nav_light.rviz"]
     )
     default_inspection_routes = PathJoinSubstitution(
         [
@@ -169,6 +169,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             "route_file": inspection_route_file,
+            "map": map_file,
             "default_route": default_route,
             "auto_set_initial_pose": auto_set_initial_pose,
             "auto_start": auto_start_inspection,
@@ -251,8 +252,11 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "auto_set_initial_pose",
-                default_value="true",
-                description="巡检节点启动后是否发布固定 AMCL 初始位姿。",
+                default_value="false",
+                description=(
+                    "巡检节点启动后是否发布固定 AMCL 初始位姿；"
+                    "默认关闭，避免机器人被搬动后覆盖人工定位结果。"
+                ),
             ),
             DeclareLaunchArgument(
                 "auto_start_inspection",

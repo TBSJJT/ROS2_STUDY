@@ -219,13 +219,18 @@ class STM32BridgeNode(Node):
         # 初始为零速度 (停车状态)
         self.target_command = VelocityCommand()
 
+        # effective_command: 发送循环经过安全门控后实际选用的指令。
+        # 它与 target_command 分开保存，避免状态日志在看门狗停车后仍把
+        # 上游最后一次非零请求误显示成正在生效的速度。
+        self.effective_command = VelocityCommand()
+
         # last_command_time: 上次收到 /cmd_vel 消息的时间
         # 初始为 None (还没收到过指令)
         # 用于指令看门狗: 超过 cmd_timeout 后自动停车
         self.last_command_time: Optional[float] = None
 
         # last_feedback_time: 上次收到有效反馈帧的时间
-        # 用于状态显示判断反馈是否正常
+        # 用于状态显示和反馈看门狗安全门控
         self.last_feedback_time: Optional[float] = None
 
         # last_reconnect_attempt: 上次尝试重连的时间
@@ -355,6 +360,9 @@ class STM32BridgeNode(Node):
             # 步骤 2: 清理状态
             self.parser.clear()                 # 清空协议缓冲区
             self.odometry_integrator.reset_time()  # 重置里程计时间戳
+            # 新连接必须先收到本次连接上的有效反馈，才能解除零速门控。
+            self.last_feedback_time = None
+            self.effective_command = VelocityCommand()
 
             self.get_logger().info(
                 f"串口已连接: {self.config.port} @ {self.config.baud}"
@@ -379,6 +387,8 @@ class STM32BridgeNode(Node):
             # - SerialException: 串口配置错误 (权限不足、波特率不支持等)
             self.statistics.serial_errors += 1
             self.transport.close()
+            self.last_feedback_time = None
+            self.effective_command = VelocityCommand()
             self.get_logger().error(
                 f"无法打开串口 {self.config.port}: {exc}"
             )
@@ -407,6 +417,8 @@ class STM32BridgeNode(Node):
         self.transport.close()
         self.parser.clear()
         self.odometry_integrator.reset_time()
+        self.last_feedback_time = None
+        self.effective_command = VelocityCommand()
 
     def _try_reconnect(self) -> None:
         """
@@ -560,10 +572,16 @@ class STM32BridgeNode(Node):
 
         这个回调以 tx_rate (默认 50Hz) 的频率被 ROS 执行器调用.
 
-        安全机制: 指令看门狗 (Command Watchdog)
+        安全机制:
+        1. 指令看门狗 (Command Watchdog)
         - 如果超过 cmd_timeout (默认 0.3 秒) 没有收到新的 /cmd_vel,
         - 自动发送零速度指令 (而不是停止发送)
         - 持续发送停车帧让下位机明确知道应该保持静止
+
+        2. 反馈看门狗 (Feedback Watchdog)
+        - 在收到第一帧有效反馈前不允许发送非零速度;
+        - 有效反馈超过 feedback_timeout 未更新时强制发送零速度;
+        - 防止串口仍可写、但底盘状态反馈已经失效时继续开环运动。
 
         为什么 "持续发送停车帧" 比 "停止发送" 更好?
         - 停止发送 -> 下位机不知道上位机是 crash 了还是故意不动
@@ -586,10 +604,22 @@ class STM32BridgeNode(Node):
             or now - self.last_command_time > self.config.cmd_timeout
         )
 
+        # 反馈丢失时即使上游仍在连续发布 /cmd_vel，也不允许继续发送非零
+        # 指令。反馈恢复后，新的且未超时的速度请求会自动恢复生效。
+        feedback_expired = (
+            self.last_feedback_time is None
+            or now - self.last_feedback_time > self.config.feedback_timeout
+        )
+
         # 根据超时状态选择要发送的指令:
         # - 超时: 发送零速度指令 (停车)
         # - 未超时: 发送最新的目标指令
-        command = VelocityCommand() if command_expired else self.target_command
+        command = (
+            VelocityCommand()
+            if command_expired or feedback_expired
+            else self.target_command
+        )
+        self.effective_command = command
 
         # 发送指令
         self._write_velocity(command)
@@ -903,9 +933,12 @@ class STM32BridgeNode(Node):
         status = (
             f"串口={serial_state}  指令={command_state}/{command_age}  "
             f"反馈={feedback_state}/{feedback_age}\n"
-            f"  目标: vx={self.target_command.linear_x:+.3f} m/s  "
+            f"  请求: vx={self.target_command.linear_x:+.3f} m/s  "
             f"vy={self.target_command.linear_y:+.3f} m/s  "
             f"wz={self.target_command.angular_z:+.3f} rad/s\n"
+            f"  生效: vx={self.effective_command.linear_x:+.3f} m/s  "
+            f"vy={self.effective_command.linear_y:+.3f} m/s  "
+            f"wz={self.effective_command.angular_z:+.3f} rad/s\n"
             f"  底盘: vx={self._value(feedback, 'linear_x'):+.3f} m/s  "
             f"vy={self._value(feedback, 'linear_y'):+.3f} m/s  "
             f"wz={self._value(feedback, 'angular_z'):+.3f} rad/s\n"

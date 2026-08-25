@@ -144,6 +144,9 @@ class SerialTransport:
             xonxoff=False,                # 禁用软件流控 (XON/XOFF)
             rtscts=False,                  # 禁用硬件流控 (RTS/CTS)
             dsrdtr=False,                 # 禁用硬件流控 (DSR/DTR)
+            # POSIX 独占锁: 若另一个进程已打开同一 TTY，直接启动失败，
+            # 避免两个驱动同时读取并把彼此的数据解析成坏帧。
+            exclusive=True,
         )
         # 然后设置实际的端口路径
         connection.port = self.port

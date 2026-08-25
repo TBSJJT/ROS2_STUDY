@@ -3,8 +3,8 @@ inspection_manager:
     # 路线文件由 launch 默认定位到本包 share/config 目录。
     default_route: standard_route
 
-    # 固定停靠位上电时可开启；若机器人可能被搬动，应设为 false 后人工确认。
-    auto_set_initial_pose: true
+    # 首轮实车巡检必须人工确认 AMCL 定位，禁止自动覆盖初始位姿。
+    auto_set_initial_pose: false
 
     # 工程部署建议先保持 false，由后端或服务明确启动任务。
     auto_start: false
@@ -14,6 +14,9 @@ inspection_manager:
 
     # RiskEvent 中达到该等级时，配置允许的任务会立即停止。
     critical_risk_level: 3
+
+    # 航点中心周围至少0.30米必须全部是已知自由栅格。
+    minimum_waypoint_clearance_m: 0.30
 
     # ROS 2 Humble 的 AMCL 默认订阅该初始化位姿话题。
     initial_pose_topic: /initialpose

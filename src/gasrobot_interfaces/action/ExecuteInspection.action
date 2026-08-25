@@ -7,6 +7,8 @@ float32 alarm_threshold
 bool stop_on_critical_risk
 
 # 临时路线的执行策略；本地配置路线使用 YAML 中的对应策略。
+# default_dwell_sec 是可选静止观察时间，不负责触发气体采样。
+# 气体节点必须在整个巡检任务期间独立、连续采样。
 uint32 repeat_count
 float32 default_dwell_sec
 uint32 max_retries
