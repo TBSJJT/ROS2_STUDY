@@ -10,6 +10,23 @@ PicoPC 上的工作空间固定为：
 /userdata/iceice/gasrobot_ws
 ```
 
+## 快速使用
+
+```bash
+cd /userdata/iceice/gasrobot_ws
+source /opt/ros/humble/setup.bash
+colcon build --packages-up-to gasrobot_bringup
+source install/setup.bash
+
+# 默认加载 picopc_1.yaml，并启动 Nav2、RViz 和巡检管理器。
+ros2 launch gasrobot_bringup gasrobot.launch.py \
+  mode:=nav enable_inspection:=true enable_rviz:=true
+
+# 完成 RViz 初始定位并确认安全后，开始或取消一圈巡检。
+ros2 service call /inspection_manager/start_default std_srvs/srv/Trigger '{}'
+ros2 service call /inspection_manager/cancel std_srvs/srv/Trigger '{}'
+```
+
 ## 软件包结构
 
 ```text
@@ -24,6 +41,28 @@ gasrobot_ws/
     ├── gasrobot_bringup          # 整机统一启动
     └── vendor                    # 第三方雷达驱动
 ```
+
+## 代码阅读顺序
+
+建议按照数据依赖和运行调用关系阅读，不要先从顶层 Launch 反向猜测业务逻辑：
+
+1. `gasrobot_interfaces/msg`、`srv`、`action`：先理解各功能包交换的数据结构；
+2. `gasrobot_description/urdf/gasrobot/gas_robot.urdf.xacro`：理解车体、雷达、IMU、
+   相机和气体传感器坐标系；
+3. `gasrobot_base/gasrobot_base`：依次阅读 `models.py`、`parameters.py`、
+   `protocol.py`、`serial_transport.py`、`imu.py`、`odometry.py`、`node.py`、
+   `stm32_bridge.py`，理解 STM32 数据如何变成里程计、IMU 和 TF；
+4. `gasrobot_gas_mapping`：先看 `maps/picopc_1.yaml`，再看
+   `config/slam_toolbox.yaml` 和 `launch/mapping.launch.py`；
+5. `gasrobot_navigation/config`：先看 `inspection_routes.yaml`、
+   `inspection_manager.yaml` 和 `nav2_params.yaml`，理解路线与 Nav2 参数；
+6. `gasrobot_navigation/gasrobot_navigation`：依次阅读 `route_config.py`、
+   `map_route_validator.py`、`inspection_manager.py`，理解路线解析、安全校验和任务状态机；
+7. `gasrobot_navigation/launch`：阅读 `navigation.launch.py` 和
+   `inspection.launch.py`，理解导航栈与巡检管理器如何启动；
+8. `gasrobot_bringup/launch`：先看 `hardware.launch.py`，最后看
+   `gasrobot.launch.py`，理解整机各功能包的组合关系；
+9. `gasrobot_gas` 和 `vendor`：前者目前仍是气体检测功能骨架，后者只在调试雷达驱动时阅读。
 
 ## 当前正常巡检逻辑
 
