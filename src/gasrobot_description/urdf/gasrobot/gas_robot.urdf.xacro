@@ -9,14 +9,24 @@
 <xacro:include filename="$(find gasrobot_description)/urdf/gasrobot/sensor/laser.urdf.xacro"/>
 <!-- 执行器 -->
 <xacro:include filename="$(find gasrobot_description)/urdf/gasrobot/wheel/wheel.urdf.xacro"/>
+<!-- 插件 -->
+<xacro:include filename="$(find gasrobot_description)/urdf/gasrobot/plugins/gasrobot_ros2_control.xacro"/>
+
+<!-- 下位机参数是从车体中心到车轮中心的半尺寸：半轴距 0.103 m、半轮距 0.133 m。 -->
+<xacro:property name="wheelbase_half" value="0.103"/>
+<xacro:property name="track_half" value="0.133"/>
 
 <xacro:base_xacro xyz="0.30 0.305 0.07"/>
 <xacro:imu_xacro xyz="-0.065 0.02 0.0"/>
 <xacro:laser_xacro xyz="0.12 0.0 0.07"/>
 <xacro:camera_xacro xyz="0.15 0.0 0.05"/>
-<xacro:wheel_xacro wheel_name="LeftFront_wheel" xyz="0.15 0.18 -0.02"/>
-<xacro:wheel_xacro wheel_name="LeftBack_wheel" xyz="-0.15 0.18 -0.02"/>
-<xacro:wheel_xacro wheel_name="RightFront_wheel" xyz="0.15 -0.18 -0.02"/>
-<xacro:wheel_xacro wheel_name="RightBack_wheel" xyz="-0.15 -0.18 -0.02"/>
+<xacro:wheel_xacro wheel_name="LeftFront_wheel" xyz="${wheelbase_half} ${track_half} -0.02"/>
+<xacro:wheel_xacro wheel_name="LeftBack_wheel" xyz="${-wheelbase_half} ${track_half} -0.02"/>
+<xacro:wheel_xacro wheel_name="RightFront_wheel" xyz="${wheelbase_half} ${-track_half} -0.02"/>
+<xacro:wheel_xacro wheel_name="RightBack_wheel" xyz="${-wheelbase_half} ${-track_half} -0.02"/>
 
+<xacro:gasrobot_ros2_control/>
+<!-- 接入二维雷达、IMU 与普通 RGB 相机仿真。 -->
+<xacro:include filename="$(find gasrobot_description)/urdf/gasrobot/plugins/gazebo_sensor_plugin.xacro"/>
+<xacro:gazebo_sensor_plugin/>
 </robot>

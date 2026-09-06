@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- 每个轮轴独立提供速度和力矩命令接口，并提供位置、速度反馈。
+         velocity 单位为 rad/s，effort 对旋转关节表示 N·m。
+         两类接口供不同控制器使用，但同一时刻只能激活一种轮轴控制器。 -->
+    <xacro:macro name="gasrobot_control_wheel" params="name">
+        <joint name="${name}">
+            <command_interface name="velocity"/>
+            <!-- GazeboSystem 将该接口映射为关节轴力矩。 -->
+            <command_interface name="effort"/>
+            <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+            <state_interface name="velocity"/>
+        </joint>
+    </xacro:macro>
+    <xacro:macro name="gasrobot_ros2_control">
+        <ros2_control name="GasRobotGazeboSystem" type="system">
+            <hardware><plugin>gazebo_ros2_control/GazeboSystem</plugin></hardware>
+            <xacro:gasrobot_control_wheel name="LeftFront_wheel_joint"/>
+            <xacro:gasrobot_control_wheel name="LeftBack_wheel_joint"/>
+            <xacro:gasrobot_control_wheel name="RightFront_wheel_joint"/>
+            <xacro:gasrobot_control_wheel name="RightBack_wheel_joint"/>
+        </ros2_control>
+        <!-- 本插件在 Gazebo 内创建 controller_manager，不应再启动第二个管理器。
+             也不能同时启用 gazebo_ros_diff_drive，以免争用四个关节和 odom TF。 -->
+        <gazebo>
+            <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+                <robot_param>robot_description</robot_param>
+                <robot_param_node>robot_state_publisher</robot_param_node>
+                <parameters>$(find gasrobot_description)/config/gasrobot_ros2_controller.yaml</parameters>
+                <ros>
+                    <namespace>/</namespace>
+                    <remapping>/diff_drive_controller/cmd_vel_unstamped:=/cmd_vel</remapping>
+                    <remapping>/diff_drive_controller/odom:=/odom</remapping>
+                </ros>
+            </plugin>
+        </gazebo>
+    </xacro:macro>
+</robot>

@@ -4,7 +4,7 @@ project(gasrobot_description)
 find_package(ament_cmake REQUIRED)
 
 # 模型、RViz 配置和 Launch 必须保持相对目录，供 xacro include 正确解析。
-install(DIRECTORY config launch urdf
+install(DIRECTORY config launch urdf world
   DESTINATION share/${PROJECT_NAME}
 )
 

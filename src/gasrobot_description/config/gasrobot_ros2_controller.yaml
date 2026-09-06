@@ -1,0 +1,54 @@
+# Gazebo 仿真控制器；四轮独立接口由同一个差速控制器统一协调。
+controller_manager:
+  ros__parameters:
+    update_rate: 100
+    use_sim_time: true
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    gasrobot_effort_controller:
+      type: effort_controllers/JointGroupEffortController
+    diff_drive_controller:
+      type: diff_drive_controller/DiffDriveController
+
+# 四轮力矩控制器的输入话题为 /gasrobot_effort_controller/commands，
+# 消息类型为 std_msgs/msg/Float64MultiArray，四个元素必须与下列顺序一致。
+gasrobot_effort_controller:
+  ros__parameters:
+    joints:
+      - LeftFront_wheel_joint
+      - LeftBack_wheel_joint
+      - RightFront_wheel_joint
+      - RightBack_wheel_joint
+
+diff_drive_controller:
+  ros__parameters:
+    left_wheel_names: [LeftFront_wheel_joint, LeftBack_wheel_joint]
+    right_wheel_names: [RightFront_wheel_joint, RightBack_wheel_joint]
+    # 下位机 MEC_wheelspacing=0.133 m 表示车体中心到单侧车轮中心的距离，
+    # 因此控制器所需的左右轮中心全轮距为 2×0.133=0.266 m。
+    wheel_separation: 0.266
+    wheel_radius: 0.04
+    publish_rate: 50.0
+    odom_frame_id: odom
+    base_frame_id: base_footprint
+    enable_odom_tf: true
+    # 使用轮轴位置反馈计算里程计，而非直接积分目标命令。
+    open_loop: false
+    position_feedback: true
+    # 保持与现有 Nav2 /cmd_vel（Twist）接口一致。
+    use_stamped_vel: false
+    cmd_vel_timeout: 0.5
+    velocity_rolling_window_size: 10
+    # 延续巡检速度上限；旋转速度和加速度为可调整的仿真初值。
+    linear.x.has_velocity_limits: true
+    linear.x.max_velocity: 0.15
+    linear.x.min_velocity: -0.15
+    linear.x.has_acceleration_limits: true
+    linear.x.max_acceleration: 0.3
+    linear.x.min_acceleration: -0.3
+    angular.z.has_velocity_limits: true
+    angular.z.max_velocity: 0.6
+    angular.z.min_velocity: -0.6
+    angular.z.has_acceleration_limits: true
+    angular.z.max_acceleration: 1.0
+    angular.z.min_acceleration: -1.0

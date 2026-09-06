@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- 仿真接口：/scan、/imu/data_raw、/camera/image_raw、/camera/camera_info。
+         仅模拟普通 RGB 图像，不产生深度图或点云。参数为仿真假设，非传感器标定值。
+         气体浓度需要另外的气体场模型。 -->
+    <xacro:macro name="gasrobot_imu_noise" params="sigma">
+        <noise type="gaussian"><mean>0</mean><stddev>${sigma}</stddev></noise>
+    </xacro:macro>
+    <xacro:macro name="gazebo_sensor_plugin">
+        <!-- 相机光学坐标系：Z向前、X向右、Y向下。物理相机仍沿camera_link的X看向前。 -->
+        <link name="camera_optical_frame"/>
+        <joint name="camera_optical_joint" type="fixed">
+            <parent link="camera_link"/><child link="camera_optical_frame"/>
+            <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+        </joint>
+        <gazebo reference="laser_link">
+            <sensor name="laser_sensor" type="ray">
+                <always_on>true</always_on>
+                <!-- 关闭激光线可视化以减轻GUI负载，不影响/scan。 -->
+                <visualize>true</visualize>
+                <update_rate>10</update_rate><pose>0 0 0 0 0 0</pose>
+                <ray>
+                    <scan><horizontal>
+                        <samples>360</samples><resolution>1</resolution>
+                        <min_angle>${-pi}</min_angle><max_angle>${pi}</max_angle>
+                    </horizontal></scan>
+                    <!-- 保留原测距设置；后续按实机扫描参数校准。 -->
+                    <range><min>0.15</min><max>50</max><resolution>0.015</resolution></range>
+                    <noise><type>gaussian</type><mean>0</mean><stddev>0.01</stddev></noise>
+                </ray>
+                <plugin name="gazebo_ros_laser" filename="libgazebo_ros_ray_sensor.so">
+                    <ros><namespace>/</namespace><remapping>~/out:=scan</remapping></ros>
+                    <output_type>sensor_msgs/LaserScan</output_type><frame_name>laser_link</frame_name>
+                </plugin>
+            </sensor>
+        </gazebo>
+        <gazebo reference="imu_link">
+            <sensor name="imu_sensor" type="imu">
+                <!-- 对齐底盘串口每20ms上传一次反馈的频率。 -->
+                <update_rate>50</update_rate><always_on>true</always_on>
+                <imu>
+                    <angular_velocity>
+                        <x><xacro:gasrobot_imu_noise sigma="0.0002"/></x>
+                        <y><xacro:gasrobot_imu_noise sigma="0.0002"/></y>
+                        <z><xacro:gasrobot_imu_noise sigma="0.0002"/></z>
+                    </angular_velocity>
+                    <linear_acceleration>
+                        <x><xacro:gasrobot_imu_noise sigma="0.017"/></x>
+                        <y><xacro:gasrobot_imu_noise sigma="0.017"/></y>
+                        <z><xacro:gasrobot_imu_noise sigma="0.017"/></z>
+                    </linear_acceleration>
+                </imu>
+                <plugin name="gazebo_ros_imu" filename="libgazebo_ros_imu_sensor.so">
+                    <ros><namespace>/</namespace><remapping>~/out:=imu/data_raw</remapping></ros>
+                    <frame_name>imu_link</frame_name>
+                    <initial_orientation_as_reference>false</initial_orientation_as_reference>
+                </plugin>
+            </sensor>
+        </gazebo>
+        <gazebo reference="camera_link">
+            <sensor name="rgb_camera_sensor" type="camera">
+                <always_on>true</always_on><update_rate>10</update_rate>
+                <camera name="rgb_camera">
+                    <!-- 暂沿用原视场角；640x480用于巡检抓拍，降低仿真开销。 -->
+                    <horizontal_fov>1.5009831567</horizontal_fov>
+                    <image><width>640</width><height>480</height><format>R8G8B8</format></image>
+                    <clip><near>0.05</near><far>50</far></clip>
+                </camera>
+                <plugin name="gazebo_ros_camera" filename="libgazebo_ros_camera.so">
+                    <ros>
+                        <namespace>/camera</namespace>
+                        <remapping>image_raw:=/camera/image_raw</remapping>
+                        <remapping>camera_info:=/camera/camera_info</remapping>
+                    </ros>
+                    <camera_name>camera</camera_name><frame_name>camera_optical_frame</frame_name>
+                </plugin>
+            </sensor>
+        </gazebo>
+    </xacro:macro>
+</robot>

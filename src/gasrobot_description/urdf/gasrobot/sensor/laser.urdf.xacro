@@ -76,6 +76,15 @@
             <child link="laserSupport_link"/>
             <origin xyz="${xyz}" rpy="0.0 0.0 0.0"/>
         </joint>
+
+        <gazebo reference="laserSupport_link">
+            <material>Gazebo/Black</material>
+        </gazebo>
+
+        <gazebo reference="laser_link">
+            <material>Gazebo/Black</material>
+        </gazebo>
+        
     </xacro:macro>
     
 </robot>

@@ -1,25 +1,133 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://ros.org/wiki/xacro">
 
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- =========================================================
+         长方体惯量
+         
+         m：质量 kg
+         w：X方向尺寸
+         h：Y方向尺寸
+         d：Z方向尺寸
+         ========================================================= -->
     <xacro:macro name="box_inertia" params="m w h d">
+
         <inertial>
-            <mass value="${m}" />
-            <inertia ixx="${(m/12) * (h*h + d*d)}" ixy="0.0" ixz="0.0" iyy="${(m/12) * (w*w + d*d)}" iyz="0.0" izz="${(m/12) * (w*w + h*h)}" />
+
+            <mass value="${m}"/>
+
+            <inertia
+                ixx="${(m/12.0) * (h*h + d*d)}"
+                ixy="0.0"
+                ixz="0.0"
+
+                iyy="${(m/12.0) * (w*w + d*d)}"
+                iyz="0.0"
+
+                izz="${(m/12.0) * (w*w + h*h)}"
+            />
+
         </inertial>
+
     </xacro:macro>
 
+
+    <!-- =========================================================
+         圆柱体惯量：圆柱轴沿 Z 轴
+
+         适用于：
+         - 竖直圆柱
+         - 雷达支撑杆
+         - 默认 URDF cylinder
+
+         m：质量
+         r：半径
+         h：圆柱长度
+         ========================================================= -->
     <xacro:macro name="cylinder_inertia" params="m r h">
+
         <inertial>
-            <mass value="${m}" />
-            <inertia ixx="${(m/12) * (3*r*r + h*h)}" ixy="0" ixz="0" iyy="${(m/12) * (3*r*r + h*h)}" iyz="0" izz="${(m/2) * (r*r)}" />
+
+            <mass value="${m}"/>
+
+            <inertia
+                ixx="${(m/12.0) * (3*r*r + h*h)}"
+                ixy="0.0"
+                ixz="0.0"
+
+                iyy="${(m/12.0) * (3*r*r + h*h)}"
+                iyz="0.0"
+
+                izz="${(m/2.0) * r*r}"
+            />
+
         </inertial>
+
     </xacro:macro>
 
-    <xacro:macro name="sphere_inertia" params="m r">
+
+    <!-- =========================================================
+         圆柱体惯量：圆柱轴沿 Y 轴
+
+         专门适用于车辆轮子。
+
+         因为轮子旋转轴为 Y：
+
+             Iyy = 1/2 * m * r²
+
+         X、Z 为径向：
+
+             Ixx = Izz
+                 = 1/12 * m * (3r² + h²)
+         ========================================================= -->
+    <xacro:macro name="cylinder_inertia_y" params="m r h">
+
         <inertial>
-            <mass value="${m}" />
-            <inertia ixx="${(2/5) * m * (r*r)}" ixy="0.0" ixz="0.0" iyy="${(2/5) * m * (r*r)}" iyz="0.0" izz="${(2/5) * m * (r*r)}" />
+
+            <mass value="${m}"/>
+
+            <inertia
+                ixx="${(m/12.0) * (3*r*r + h*h)}"
+                ixy="0.0"
+                ixz="0.0"
+
+                iyy="${(m/2.0) * r*r}"
+                iyz="0.0"
+
+                izz="${(m/12.0) * (3*r*r + h*h)}"
+            />
+
         </inertial>
+
+    </xacro:macro>
+
+
+    <!-- =========================================================
+         实心球体惯量
+
+         三个方向完全相同：
+
+             I = 2/5 * m * r²
+         ========================================================= -->
+    <xacro:macro name="sphere_inertia" params="m r">
+
+        <inertial>
+
+            <mass value="${m}"/>
+
+            <inertia
+                ixx="${(2.0/5.0) * m * r*r}"
+                ixy="0.0"
+                ixz="0.0"
+
+                iyy="${(2.0/5.0) * m * r*r}"
+                iyz="0.0"
+
+                izz="${(2.0/5.0) * m * r*r}"
+            />
+
+        </inertial>
+
     </xacro:macro>
 
 </robot>
