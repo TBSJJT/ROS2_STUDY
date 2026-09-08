@@ -3,18 +3,12 @@
 <package format="3">
   <name>gasrobot_description</name>
   <version>0.1.0</version>
-  <description>GasRobot 的 URDF、Xacro、Gazebo 仿真与可视化资源软件包。</description>
+  <description>GasRobot 共用机器人模型、坐标系与可视化资源。</description>
   <maintainer email="2799572363@qq.com">book</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <exec_depend>controller_manager</exec_depend>
-  <exec_depend>diff_drive_controller</exec_depend>
-  <exec_depend>effort_controllers</exec_depend>
-  <exec_depend>gazebo_ros</exec_depend>
-  <exec_depend>gazebo_ros2_control</exec_depend>
-  <exec_depend>joint_state_broadcaster</exec_depend>
   <exec_depend>joint_state_publisher</exec_depend>
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>

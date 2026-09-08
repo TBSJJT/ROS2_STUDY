@@ -26,3 +26,10 @@ check_urdf /tmp/gasrobot.urdf
 ```
 
 传感器或机械结构变更应在本包修改，运行算法和硬件通信不应放入本包。
+
+## 仿真资源归属
+
+Gazebo 启动、控制器 YAML 和场景已迁入 `gasrobot_simulation`，请阅读该包 README。
+本包默认 `simulation:=false`，仅发布模型；仿真入口负责启用模型插件并注入配置。
+旧 `gazebo_sim.launch.py` 仅为兼容转发入口，需要另外构建仿真包。
+`docs/legacy_models/` 保存历史手写模型，不作为运行入口，也不安装到软件包。

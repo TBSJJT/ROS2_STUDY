@@ -12,7 +12,7 @@
             <state_interface name="velocity"/>
         </joint>
     </xacro:macro>
-    <xacro:macro name="gasrobot_ros2_control">
+    <xacro:macro name="gasrobot_ros2_control" params="controllers_file">
         <ros2_control name="GasRobotGazeboSystem" type="system">
             <hardware><plugin>gazebo_ros2_control/GazeboSystem</plugin></hardware>
             <xacro:gasrobot_control_wheel name="LeftFront_wheel_joint"/>
@@ -26,7 +26,7 @@
             <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
                 <robot_param>robot_description</robot_param>
                 <robot_param_node>robot_state_publisher</robot_param_node>
-                <parameters>$(find gasrobot_description)/config/gasrobot_ros2_controller.yaml</parameters>
+                <parameters>${controllers_file}</parameters>
                 <ros>
                     <namespace>/</namespace>
                     <remapping>/diff_drive_controller/cmd_vel_unstamped:=/cmd_vel</remapping>

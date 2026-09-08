@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro= "http://www.ros.org/wiki/xacro" name="gas_robot">
+<!-- 实车默认只加载模型；仿真入口显式开启插件并传入控制器配置。 -->
+<xacro:arg name="simulation" default="false"/>
+<xacro:arg name="controllers_file" default=""/>
 
 <!-- 底盘 -->
 <xacro:include filename="$(find gasrobot_description)/urdf/gasrobot/base.urdf.xacro"/>
@@ -25,8 +28,10 @@
 <xacro:wheel_xacro wheel_name="RightFront_wheel" xyz="${wheelbase_half} ${-track_half} -0.02"/>
 <xacro:wheel_xacro wheel_name="RightBack_wheel" xyz="${-wheelbase_half} ${-track_half} -0.02"/>
 
-<xacro:gasrobot_ros2_control/>
+<xacro:if value="$(arg simulation)">
+<xacro:gasrobot_ros2_control controllers_file="$(arg controllers_file)"/>
 <!-- 接入二维雷达、IMU 与普通 RGB 相机仿真。 -->
 <xacro:include filename="$(find gasrobot_description)/urdf/gasrobot/plugins/gazebo_sensor_plugin.xacro"/>
 <xacro:gazebo_sensor_plugin/>
+</xacro:if>
 </robot>

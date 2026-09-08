@@ -15,6 +15,21 @@ PicoPC 上的工作空间固定为：
 
 ## 快速使用
 
+### 虚拟机仿真
+
+```bash
+cd /home/book/Study_BackUp/ros2_study/gasrobot_ws
+source /opt/ros/humble/setup.bash
+colcon build --packages-up-to gasrobot_simulation --symlink-install
+source install/setup.bash
+ros2 launch gasrobot_simulation gazebo_sim.launch.py
+```
+
+仿真目录、键盘控制和代码阅读顺序见 [仿真包说明](src/gasrobot_simulation/README.md)。
+仿真不启动 STM32 串口驱动；实车部署继续使用下面的 PicoPC 入口。
+
+### PicoPC 实车
+
 ```bash
 cd /userdata/iceice/gasrobot_ws
 source /opt/ros/humble/setup.bash
@@ -42,6 +57,7 @@ gasrobot_ws/
     ├── gasrobot_gas_mapping      # SLAM、地图和后续气体分布图
     ├── gasrobot_navigation       # Nav2 参数和巡检任务管理
     ├── gasrobot_bringup          # 整机统一启动
+    ├── gasrobot_simulation       # Gazebo 场景、仿真启动和控制器配置
     └── vendor                    # 第三方雷达驱动
 ```
 
