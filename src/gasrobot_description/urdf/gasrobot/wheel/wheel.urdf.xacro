@@ -1,18 +1,23 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro= "http://www.ros.org/wiki/xacro">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
     <xacro:include filename="$(find gasrobot_description)/urdf/gasrobot/mass_inertia.xacro"/>
 
-
+    <!--
+        四个车轮共用此宏。wheel_name 决定 link/joint 名称，必须与 ros2_control 配置一致；
+        xyz 是轮轴中心相对 base_link 的位置（m），由 gas_robot.urdf.xacro 传入。
+        visual 用于显示，collision 用于接触求解，inertial 用于动力学；三者需保持一致。
+        修改半径时还要同步差速控制器的 wheel_radius，否则轮式里程计会产生比例误差。
+    -->
     <xacro:macro name="wheel_xacro" params="wheel_name xyz">
         <!-- 机器人的轮子部件 -->
         <link name="${wheel_name}_link">
-            <!-- 部件的外观描述 -->
+            <!-- 圆柱默认轴向是局部 Z；绕 X 旋转 pi/2 后沿轮轴 Y 放置。 -->
             <visual>
                 <!-- 沿着自己几何中心的偏移和旋转量 -->
                 <origin xyz="0.0 0.0 0.0" rpy="1.57079 0.0 0.0"/>
                 <!-- 几何形状 -->
                 <geometry>
-                    <!-- 立方体 -->
+                    <!-- 圆柱车轮，半径与差速控制器的 wheel_radius 保持一致。 -->
                     <cylinder radius="0.04" length="0.04"/>
                 </geometry>
                 <!-- 材质和颜色描述 -->
@@ -25,7 +30,7 @@
                 <origin xyz="0.0 0.0 0.0" rpy="1.57079 0.0 0.0"/>
                 <!-- 几何形状 -->
                 <geometry>
-                    <!-- 立方体 -->
+                    <!-- 圆柱车轮，半径与差速控制器的 wheel_radius 保持一致。 -->
                     <cylinder radius="0.04" length="0.04"/>
                 </geometry>
                 <!-- 材质和颜色描述 -->
@@ -33,10 +38,12 @@
                     <color rgba="0.0 0.0 0.0 1.0"/>
                 </material>
             </collision>
-            <xacro:cylinder_inertia m="0.05" r="0.04" h="0.04"/>
+            <!-- 轮轴沿 link 的 Y 轴；惯量轴必须与真实旋转轴一致。 -->
+            <xacro:cylinder_inertia_y m="0.05" r="0.04" h="0.04"/>
         </link>
 
-        <!-- 机器人的关节,用于组合部件 -->
+        <!-- continuous 表示轮轴可以连续旋转；axis 在关节坐标系中定义。
+             这里不改变关节原点朝向，所以其 Y 轴与 base_link 的 Y 轴一致。 -->
         <joint name="${wheel_name}_joint" type="continuous">
             <parent link="base_link"/>
             <child link="${wheel_name}_link"/>
@@ -51,21 +58,27 @@
             <material>Gazebo/Black</material>
 
             <!--
-                四轮差速底盘转弯时，前后轮存在不可避免的横向滑移。
-                fdir1 指定车轮滚动方向为车体 x 轴：该方向保留较大的驱动摩擦力；
-                与其垂直的横向使用较小摩擦系数，使底盘能够原地转向。
-                如果两个方向都设为 20，四个轮子会横向锁死，只能前后行驶。
+                fdir1 属于 collision 的局部坐标系，而不是车体坐标系。
+                圆柱 collision 绕 X 轴旋转了 pi/2，所以局部 Z 就是轮轴方向；
+                选择轮轴可避免摩擦方向随着轮子滚动而周期性偏向地面法向。
+                第一方向沿轮轴（横向）：保留少量滑移摩擦，允许四轮滑移转向。
+                第二方向沿地面滚动方向：保留驱动力，限制纵向打滑。
+                这些是仿真接触参数；不改变实车驱动或轮式里程计的几何尺寸。
             -->
-            <fdir1>1.0 0.0 0.0</fdir1>
-            <mu1>2.0</mu1>
-            <mu2>0.05</mu2>
+            <fdir1>0.0 0.0 1.0</fdir1>
+            <mu1>0.005</mu1>
+            <mu2>2.0</mu2>
 
-            <!-- 接触刚度与阻尼 -->
-            <kp>10000000000.0</kp>
-            <kd>1.0</kd>
+            <!-- 接触求解：kp 为刚度（N/m），kd 为阻尼（N·s/m）。
+                 minDepth 是允许的接触深度（m），maxVel 限制穿透修正速度（m/s）。
+                 这些数值与摩擦参数一起经本场景验证，用于减少落地/滚动时的数值抖动；
+                 更改它们后应重新做转向、里程计和配送验收，不能视作真实轮胎参数。 -->
+            <kp>1000000.0</kp>
+            <kd>100.0</kd>
+            <minDepth>0.001</minDepth>
+            <maxVel>0.1</maxVel>
 
         </gazebo>
 
     </xacro:macro>
-    
 </robot>

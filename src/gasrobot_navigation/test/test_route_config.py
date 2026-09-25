@@ -249,3 +249,20 @@ def test_unknown_route_has_readable_error(tmp_path):
     # match="standard_route"：错误消息应该列出可用的路线名
     with pytest.raises(RouteConfigError, match="standard_route"):
         book.route("night_route")
+
+
+@pytest.mark.parametrize("configured", [False, True])
+def test_empty_routes_only_allowed_for_unconfigured_site(tmp_path, configured):
+    content = ("version: 1\nframe_id: map\n"
+               f"site_configured: {str(configured).lower()}\nroutes: {{}}\n")
+    path = str(_write_route(tmp_path, content))
+    if configured:
+        with pytest.raises(RouteConfigError, match="至少需要"):
+            load_route_book(path)
+    else:
+        book = load_route_book(path)
+        assert not book.site_configured
+        assert book.initial_pose is None
+        assert book.routes == {}
+        with pytest.raises(RouteConfigError, match="未找到"):
+            book.route("standard_route")

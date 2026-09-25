@@ -604,8 +604,8 @@ def load_route_book(path: str) -> RouteBook:
             waypoints=waypoints,
         )
 
-    # 至少需要一条路线, 否则没有任务可执行
-    if not routes:
+    # 未标定场地允许空配置；任务管理器仍拒绝启动未标定场地。
+    if not routes and site_configured:
         raise RouteConfigError("routes 至少需要定义一条巡检路线")
 
     # 返回最终的 RouteBook 不可变对象

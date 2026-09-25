@@ -1,186 +1,75 @@
-# gasrobot_navigation
+# gasrobot_navigation：车间定位与导航
 
-GasRobot 的 Nav2 配置与自主巡检任务软件包。当前版本已经实现指定地图中间直走廊的
-低速之字形正常巡检，不再需要操作员在 RViz 中逐个点击目标点。
+本包提供 `launch/navigation.launch.py`，封装 Nav2 官方 bringup，启动地图服务器、
+AMCL、规划器、控制器、恢复行为和速度平滑器。配送工位、任务顺序及卸货状态机属于
+[gasrobot_delivery](../gasrobot_delivery/README.md)。
 
-## 核心原则
+## 推荐入口
 
-巡检点只控制机器人运动路线，不控制气体传感器什么时候采样。
+从工作空间根目录编译并启动完整系统：
 
-正常运行时，gasrobot_gas 应按固定频率持续发布带时间戳的 /gas/readings。机器人
-运动、转弯或经过航点时都要采样。气体读数的位置应根据时间戳查询历史 TF，不能把
-当前目标航点坐标当作实际采样位置。
+```bash
+source /opt/ros/humble/setup.bash
+colcon build --packages-up-to gasrobot_bringup --symlink-install
+source install/setup.bash
+ros2 launch gasrobot_bringup delivery_sim.launch.py
+```
 
-路线中的 dwell_sec 是可选的静止观察时间。当前正常巡检路线全部为 0 秒，到点后
-立即发送下一个导航目标。
+该入口组合 Gazebo、地图、定位、导航及配送节点，默认不自动发送配送目标。
+开始与任务控制见 [配送操作说明](../gasrobot_delivery/README.md#开始与控制)。
+不要在同一仿真中重复启动另一套 AMCL/Nav2。
 
-## 当前实现
+## 当前实际使用的配置
 
-- 复用 Nav2 的定位、规划、避障和运动控制；
-- AMCL 使用 `DifferentialMotionModel`，按普通差速底盘估计运动；
-- DWB 和速度平滑器均禁止 `linear.y` 横移，只输出前后速度和角速度；
-- 使用标准 NavigateToPose Action 逐点执行路线；
-- 启动前校验路线 YAML、地图坐标系和点位安全距离；
-- 点位必须位于指定地图的已知自由区域；
-- 航点周围至少 0.30 米不能出现障碍物、未知区域或地图边界；
-- 支持单点超时、有限重试、暂停、继续、取消和任务状态；
-- 默认不自动设置 AMCL 初始位姿，也不自动启动车辆；
-- 允许严重 RiskEvent 按路线策略取消当前任务。
+| 配置 | 文件 | 作用 |
+|---|---|---|
+| 地图 | `gasrobot_gas_mapping/maps/workshop_delivery_v1.yaml` | 已保存的车间占用栅格 |
+| 导航参数 | `gasrobot_delivery/config/nav2_workshop.yaml` | AMCL、Navfn、RPP、代价地图及速度平滑器 |
+| 工位 | `gasrobot_delivery/config/stations.yaml` | map 坐标中的位置、固定朝向及地图哈希 |
+| 批次 | `gasrobot_delivery/config/batch.yaml` | 访问顺序、服务时间、超时和重试 |
 
-气体基线、异常判断、回溯、局部气源搜索和恢复巡检尚未实现为运动逻辑，它们的接口
-与伪代码见 docs/active_gas_inspection_architecture.md。
+`navigation.launch.py` 的通用默认参数是本包 `config/nav2_params.yaml`，
+配送入口会显式传入上述 `nav2_workshop.yaml`。调整车间配送时应修改实际使用的配置。
 
-## 首版测试路线
+## 导航启动参数
 
-配置文件：config/inspection_routes.yaml
+| 参数 | 含义 |
+|---|---|
+| `map` | 必填，地图 YAML 路径 |
+| `params_file` | Nav2 参数文件；配送入口指定车间专用配置 |
+| `use_sim_time` | 仿真中为 true，与 Gazebo `/clock` 一致 |
+| `autostart` | 默认 true，自动激活 Nav2 生命周期节点 |
+| `use_composition` | 默认 `False`，节点使用独立进程 |
+| `respawn` | 默认 `False`，不自动重启退出的节点 |
 
-路线只覆盖 PicoPC 实机地图 `picopc_1.yaml` 的中间直走廊：
+仅调试导航时，可在完整入口添加 `enable_delivery:=false`，保留定位导航而不加载配送管理器。
 
-- X 范围约为 5.40～12.37 米；
-- 走廊轴线相对 map 的 X 轴倾斜约 4.31°；
-- 六个纵向站位等间隔约 1.387 米，上下轨间距为 0.80 米；
-- 向东 6 个点、向西 6 个点，共 12 个点；
-- 一圈包含一次完整的之字形往返；
-- 所有航点的 dwell_sec 均为 0；
-- 巡检线速度限制为 0.15 m/s；
-- 航点及相邻折线的最小静态地图净空约为 0.50 米。
-
-这些点已通过静态栅格检查，但静态地图无法识别建图后新增的障碍物。首次实车运行
-必须打开 RViz、确认 AMCL 定位和代价地图，并准备随时调用取消服务。
-
-## 文件结构
+## 数据与控制链路
 
 ```text
-gasrobot_navigation/
-├── config/
-│   ├── nav2_params.yaml
-│   ├── inspection_routes.yaml
-│   └── inspection_manager.yaml
-├── docs/
-│   └── active_gas_inspection_architecture.md
-├── gasrobot_navigation/
-│   ├── inspection_manager.py
-│   ├── map_route_validator.py
-│   └── route_config.py
-├── launch/
-│   ├── navigation.launch.py
-│   └── inspection.launch.py
-└── test/
+Gazebo /scan → AMCL、代价地图
+差速控制器 /odom → Nav2、配送节点
+配送节点 → NavigateToPose → Nav2
+Nav2 控制器/恢复行为 → /cmd_vel_nav → velocity_smoother → /cmd_vel → 差速控制器
 ```
 
-## 编译
+TF 为 `map → odom → base_footprint`，前一段由 AMCL 发布，后一段由差速控制器发布。
+定位模式不同时启动 SLAM。`odom` 原点与运动中的机器人分离是正常现象，应结合
+激光与地图是否匹配、TF 是否连续来判断定位异常。
 
-以下命令在 PicoPC 的 ROS 2 工作空间中执行。不要把 Windows 的 D 盘路径传给
-PicoPC；地图会通过 ROS 软件包索引自动定位。
+默认线速度上限 0.15 m/s，角速度上限 0.4 rad/s；代价地图膨胀半径 0.55 m。
+内部目标容差为 0.07 m / 0.07 rad，配送节点会在停车后再次检查 0.10 m / 0.10 rad 的 map 位姿容差。
+
+## 检查与验收
+
+在已加载 ROS 和工作空间环境的另一个终端执行：
 
 ```bash
-cd /userdata/iceice/gasrobot_ws
-source /opt/ros/humble/setup.bash
-
-colcon build --packages-up-to gasrobot_bringup
-source /userdata/iceice/gasrobot_ws/install/setup.bash
+ros2 lifecycle get /bt_navigator
+ros2 lifecycle get /controller_server
+ros2 run tf2_ros tf2_echo map base_footprint
 ```
 
-PicoPC 当前工作空间固定为 /userdata/iceice/gasrobot_ws。
-
-## 首次实车运行
-
-启动硬件、指定地图、Nav2、RViz 和巡检任务管理器：
-
-```bash
-cd /userdata/iceice/gasrobot_ws
-source /opt/ros/humble/setup.bash
-source /userdata/iceice/gasrobot_ws/install/setup.bash
-
-ros2 launch gasrobot_bringup gasrobot.launch.py \
-  mode:=nav \
-  map:=/userdata/iceice/gasrobot_ws/src/gasrobot_gas_mapping/maps/picopc_1.yaml \
-  enable_inspection:=true \
-  enable_rviz:=true \
-  auto_set_initial_pose:=false \
-  auto_start_inspection:=false \
-  use_sim_time:=false
-```
-
-启动后按顺序检查：
-
-1. RViz 的 Fixed Frame 是 map；
-2. 地图、LaserScan 和机器人模型重合；
-3. 使用 2D Pose Estimate 设置并确认机器人真实初始位姿；
-4. 局部和全局代价地图没有把机器人困在障碍物中；
-5. /navigate_to_pose Action 已就绪；
-6. 确认急停或取消命令可以立即使用。
-
-检查命令：
-
-```bash
-ros2 action list | grep navigate_to_pose
-ros2 lifecycle nodes
-ros2 topic echo /inspection_manager/state
-```
-
-确认无误后启动一圈巡检：
-
-```bash
-ros2 service call /inspection_manager/start_default \
-  std_srvs/srv/Trigger '{}'
-```
-
-## 任务控制
-
-查看当前状态和目标航点：
-
-```bash
-ros2 topic echo /inspection_manager/state
-ros2 topic echo /inspection_manager/current_waypoint
-ros2 topic echo /inspection_manager/active
-```
-
-暂停：
-
-```bash
-ros2 service call /inspection_manager/pause \
-  std_srvs/srv/SetBool '{data: true}'
-```
-
-继续：
-
-```bash
-ros2 service call /inspection_manager/pause \
-  std_srvs/srv/SetBool '{data: false}'
-```
-
-取消：
-
-```bash
-ros2 service call /inspection_manager/cancel \
-  std_srvs/srv/Trigger '{}'
-```
-
-空闲时重新加载修改后的路线：
-
-```bash
-ros2 service call /inspection_manager/reload_routes \
-  std_srvs/srv/Trigger '{}'
-```
-
-## 连续采样检查
-
-当 gasrobot_gas 实现后，先确认传感器话题持续发布：
-
-```bash
-ros2 topic hz /gas/readings
-ros2 topic echo /gas/readings
-```
-
-正确结果是机器人尚未到达第一个航点时就已经持续收到数据。当前 gasrobot_gas 仍是
-功能骨架，因此正常导航可以运行，但在气体驱动完成前不会自动产生真实气体数据。
-
-## 调整路线
-
-在 config/inspection_routes.yaml 中修改 x、y、yaw_deg 和路线执行策略。修改后重新
-编译 gasrobot_navigation，再调用 reload_routes 重新加载已安装配置。
-
-如果任何航点位于未知区、障碍物、地图外，或周围 0.30 米净空不足，任务管理节点会
-拒绝启动并给出具体航点 ID。禁止为了让错误路线通过而直接关闭安全校验，应先在
-RViz 中重新选择可达点。
+先确认节点处于 active，定位正常且机器人停车，再开始配送。六工位往返、跨排、
+短路线及连续三批完整配送的结果见 [验收记录](../gasrobot_delivery/docs/acceptance.md)。
+该记录也说明了 map 估计位姿容差与实际定位精度的区别。

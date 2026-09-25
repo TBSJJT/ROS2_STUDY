@@ -1,0 +1,1321 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sdf version="1.7">
+  <world name="workshop_delivery_v1">
+    <!-- Ground truth for experiment evaluation only; never used by AMCL or Nav2. -->
+    <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so">
+      <ros><namespace>/gazebo</namespace></ros>
+      <update_rate>20.0</update_rate>
+    </plugin>
+    <!-- Two rows of three machines: A/B/C at y=3, D/E/F at y=7. Six visual-only docks correspond one-to-one. Material rack at (1.5,0.45); depot/spawn at (1.5,1.5). Coordinates use world frame. -->
+    <gravity>0 0 -9.81</gravity>
+    <physics name="default_physics" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+    <scene>
+      <ambient>0.55 0.55 0.55 1</ambient>
+      <background>0.75 0.80 0.85 1</background>
+      <shadows>true</shadows>
+    </scene>
+    <light name="sun" type="directional">
+      <pose>0 0 12 0 0 0</pose>
+      <diffuse>0.85 0.85 0.85 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.4 0.2 -0.9</direction>
+      <cast_shadows>true</cast_shadows>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+    </light>
+    <gui fullscreen="0">
+      <camera name="overview">
+        <pose>15 -8 16 0 0.82 2.18</pose>
+        <view_controller>orbit</view_controller>
+      </camera>
+    </gui>
+    <model name="workshop_floor">
+      <static>true</static>
+      <pose>6 5 -0.05 0 0 0</pose>
+      <link name="body">
+        <collision name="slab_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>12.3 10.3 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="slab">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>12.3 10.3 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.62 0.65 0.67 1</ambient>
+            <diffuse>0.62 0.65 0.67 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_south">
+      <static>true</static>
+      <pose>6 -0.075 0.75 0 0 0</pose>
+      <link name="body">
+        <collision name="wall_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>12.3 0.15 1.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="wall">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>12.3 0.15 1.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.78 0.81 0.84 1</ambient>
+            <diffuse>0.78 0.81 0.84 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_north">
+      <static>true</static>
+      <pose>6 10.075 0.75 0 0 0</pose>
+      <link name="body">
+        <collision name="wall_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>12.3 0.15 1.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="wall">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>12.3 0.15 1.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.78 0.81 0.84 1</ambient>
+            <diffuse>0.78 0.81 0.84 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_west">
+      <static>true</static>
+      <pose>-0.075 5 0.75 0 0 0</pose>
+      <link name="body">
+        <collision name="wall_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.15 10 1.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="wall">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.15 10 1.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.78 0.81 0.84 1</ambient>
+            <diffuse>0.78 0.81 0.84 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_east">
+      <static>true</static>
+      <pose>12.075 5 0.75 0 0 0</pose>
+      <link name="body">
+        <collision name="wall_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.15 10 1.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="wall">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.15 10 1.5</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.78 0.81 0.84 1</ambient>
+            <diffuse>0.78 0.81 0.84 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="dock_depot">
+      <static>true</static>
+      <pose>1.5 1.5 0 0 0 0</pose>
+      <link name="body">
+        <visual name="border_0">
+          <pose>0 0.35 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.74 0.04 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.15 0.75 0.3 1</ambient>
+            <diffuse>0.15 0.75 0.3 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_1">
+          <pose>0 -0.35 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.74 0.04 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.15 0.75 0.3 1</ambient>
+            <diffuse>0.15 0.75 0.3 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_2">
+          <pose>0.35 0 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.04 0.66 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.15 0.75 0.3 1</ambient>
+            <diffuse>0.15 0.75 0.3 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_3">
+          <pose>-0.35 0 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.04 0.66 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.15 0.75 0.3 1</ambient>
+            <diffuse>0.15 0.75 0.3 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="heading">
+          <pose>0 0 0.008 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.4 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.15 0.75 0.3 1</ambient>
+            <diffuse>0.15 0.75 0.3 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="arrow_0">
+          <pose>0.15 -0.055 0.008 0 0 0.785398</pose>
+          <geometry>
+            <box>
+              <size>0.16 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.15 0.75 0.3 1</ambient>
+            <diffuse>0.15 0.75 0.3 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="arrow_1">
+          <pose>0.15 0.055 0.008 0 0 -0.785398</pose>
+          <geometry>
+            <box>
+              <size>0.16 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.15 0.75 0.3 1</ambient>
+            <diffuse>0.15 0.75 0.3 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+      </link>
+    </model>
+    <model name="dock_S1">
+      <static>true</static>
+      <pose>3.5 1.5 0 0 0 1.57079632679</pose>
+      <link name="body">
+        <visual name="border_0">
+          <pose>0 0.35 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.74 0.04 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_1">
+          <pose>0 -0.35 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.74 0.04 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_2">
+          <pose>0.35 0 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.04 0.66 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_3">
+          <pose>-0.35 0 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.04 0.66 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="heading">
+          <pose>0 0 0.008 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.4 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="arrow_0">
+          <pose>0.15 -0.055 0.008 0 0 0.785398</pose>
+          <geometry>
+            <box>
+              <size>0.16 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="arrow_1">
+          <pose>0.15 0.055 0.008 0 0 -0.785398</pose>
+          <geometry>
+            <box>
+              <size>0.16 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+      </link>
+    </model>
+    <model name="dock_S2">
+      <static>true</static>
+      <pose>6.5 1.5 0 0 0 1.57079632679</pose>
+      <link name="body">
+        <visual name="border_0">
+          <pose>0 0.35 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.74 0.04 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_1">
+          <pose>0 -0.35 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.74 0.04 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_2">
+          <pose>0.35 0 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.04 0.66 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_3">
+          <pose>-0.35 0 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.04 0.66 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="heading">
+          <pose>0 0 0.008 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.4 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="arrow_0">
+          <pose>0.15 -0.055 0.008 0 0 0.785398</pose>
+          <geometry>
+            <box>
+              <size>0.16 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="arrow_1">
+          <pose>0.15 0.055 0.008 0 0 -0.785398</pose>
+          <geometry>
+            <box>
+              <size>0.16 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+      </link>
+    </model>
+    <model name="dock_S3">
+      <static>true</static>
+      <pose>9.5 1.5 0 0 0 1.57079632679</pose>
+      <link name="body">
+        <visual name="border_0">
+          <pose>0 0.35 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.74 0.04 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_1">
+          <pose>0 -0.35 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.74 0.04 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_2">
+          <pose>0.35 0 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.04 0.66 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_3">
+          <pose>-0.35 0 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.04 0.66 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="heading">
+          <pose>0 0 0.008 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.4 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="arrow_0">
+          <pose>0.15 -0.055 0.008 0 0 0.785398</pose>
+          <geometry>
+            <box>
+              <size>0.16 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="arrow_1">
+          <pose>0.15 0.055 0.008 0 0 -0.785398</pose>
+          <geometry>
+            <box>
+              <size>0.16 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+      </link>
+    </model>
+    <model name="dock_S4">
+      <static>true</static>
+      <pose>3.5 8.5 0 0 0 -1.57079632679</pose>
+      <link name="body">
+        <visual name="border_0">
+          <pose>0 0.35 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.74 0.04 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_1">
+          <pose>0 -0.35 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.74 0.04 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_2">
+          <pose>0.35 0 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.04 0.66 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_3">
+          <pose>-0.35 0 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.04 0.66 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="heading">
+          <pose>0 0 0.008 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.4 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="arrow_0">
+          <pose>0.15 -0.055 0.008 0 0 0.785398</pose>
+          <geometry>
+            <box>
+              <size>0.16 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="arrow_1">
+          <pose>0.15 0.055 0.008 0 0 -0.785398</pose>
+          <geometry>
+            <box>
+              <size>0.16 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+      </link>
+    </model>
+    <model name="dock_S5">
+      <static>true</static>
+      <pose>6.5 8.5 0 0 0 -1.57079632679</pose>
+      <link name="body">
+        <visual name="border_0">
+          <pose>0 0.35 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.74 0.04 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_1">
+          <pose>0 -0.35 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.74 0.04 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_2">
+          <pose>0.35 0 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.04 0.66 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_3">
+          <pose>-0.35 0 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.04 0.66 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="heading">
+          <pose>0 0 0.008 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.4 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="arrow_0">
+          <pose>0.15 -0.055 0.008 0 0 0.785398</pose>
+          <geometry>
+            <box>
+              <size>0.16 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="arrow_1">
+          <pose>0.15 0.055 0.008 0 0 -0.785398</pose>
+          <geometry>
+            <box>
+              <size>0.16 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+      </link>
+    </model>
+    <model name="dock_S6">
+      <static>true</static>
+      <pose>9.5 8.5 0 0 0 -1.57079632679</pose>
+      <link name="body">
+        <visual name="border_0">
+          <pose>0 0.35 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.74 0.04 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_1">
+          <pose>0 -0.35 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.74 0.04 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_2">
+          <pose>0.35 0 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.04 0.66 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="border_3">
+          <pose>-0.35 0 0.006 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.04 0.66 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="heading">
+          <pose>0 0 0.008 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.4 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="arrow_0">
+          <pose>0.15 -0.055 0.008 0 0 0.785398</pose>
+          <geometry>
+            <box>
+              <size>0.16 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+        <visual name="arrow_1">
+          <pose>0.15 0.055 0.008 0 0 -0.785398</pose>
+          <geometry>
+            <box>
+              <size>0.16 0.045 0.008</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.98 0.72 0.10 1</ambient>
+            <diffuse>0.98 0.72 0.10 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+      </link>
+    </model>
+    <model name="equipment_A">
+      <static>true</static>
+      <pose>3.5 3 0.5 0 0 0</pose>
+      <link name="body">
+        <collision name="equipment_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>2 1.6 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="equipment">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>2 1.6 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.20 0.36 0.48 1</ambient>
+            <diffuse>0.20 0.36 0.48 1</diffuse>
+          </material>
+        </visual>
+        <visual name="top_panel">
+          <pose>0 0 0.502 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.8 1.4 0.004</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.32 0.52 0.64 1</ambient>
+            <diffuse>0.32 0.52 0.64 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+      </link>
+    </model>
+    <model name="equipment_B">
+      <static>true</static>
+      <pose>6.5 3 0.5 0 0 0</pose>
+      <link name="body">
+        <collision name="equipment_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>2 1.6 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="equipment">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>2 1.6 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.20 0.36 0.48 1</ambient>
+            <diffuse>0.20 0.36 0.48 1</diffuse>
+          </material>
+        </visual>
+        <visual name="top_panel">
+          <pose>0 0 0.502 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.8 1.4 0.004</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.32 0.52 0.64 1</ambient>
+            <diffuse>0.32 0.52 0.64 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+      </link>
+    </model>
+    <model name="equipment_C">
+      <static>true</static>
+      <pose>9.5 3 0.5 0 0 0</pose>
+      <link name="body">
+        <collision name="equipment_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>2 1.6 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="equipment">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>2 1.6 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.20 0.36 0.48 1</ambient>
+            <diffuse>0.20 0.36 0.48 1</diffuse>
+          </material>
+        </visual>
+        <visual name="top_panel">
+          <pose>0 0 0.502 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.8 1.4 0.004</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.32 0.52 0.64 1</ambient>
+            <diffuse>0.32 0.52 0.64 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+      </link>
+    </model>
+    <model name="equipment_D">
+      <static>true</static>
+      <pose>3.5 7 0.5 0 0 0</pose>
+      <link name="body">
+        <collision name="equipment_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>2 1.6 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="equipment">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>2 1.6 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.20 0.36 0.48 1</ambient>
+            <diffuse>0.20 0.36 0.48 1</diffuse>
+          </material>
+        </visual>
+        <visual name="top_panel">
+          <pose>0 0 0.502 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.8 1.4 0.004</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.32 0.52 0.64 1</ambient>
+            <diffuse>0.32 0.52 0.64 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+      </link>
+    </model>
+    <model name="equipment_E">
+      <static>true</static>
+      <pose>6.5 7 0.5 0 0 0</pose>
+      <link name="body">
+        <collision name="equipment_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>2 1.6 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="equipment">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>2 1.6 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.20 0.36 0.48 1</ambient>
+            <diffuse>0.20 0.36 0.48 1</diffuse>
+          </material>
+        </visual>
+        <visual name="top_panel">
+          <pose>0 0 0.502 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.8 1.4 0.004</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.32 0.52 0.64 1</ambient>
+            <diffuse>0.32 0.52 0.64 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+      </link>
+    </model>
+    <model name="equipment_F">
+      <static>true</static>
+      <pose>9.5 7 0.5 0 0 0</pose>
+      <link name="body">
+        <collision name="equipment_collision">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>2 1.6 1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="equipment">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>2 1.6 1</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.20 0.36 0.48 1</ambient>
+            <diffuse>0.20 0.36 0.48 1</diffuse>
+          </material>
+        </visual>
+        <visual name="top_panel">
+          <pose>0 0 0.502 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.8 1.4 0.004</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.32 0.52 0.64 1</ambient>
+            <diffuse>0.32 0.52 0.64 1</diffuse>
+          </material>
+          <cast_shadows>false</cast_shadows>
+        </visual>
+      </link>
+    </model>
+    <model name="material_station_rack">
+      <static>true</static>
+      <pose>1.5 0.45 0 0 0 0</pose>
+      <link name="rack">
+        <collision name="post_0_0_collision">
+          <pose>-0.65 -0.25 0.7 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.06 0.06 1.4</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="post_0_0_visual">
+          <pose>-0.65 -0.25 0.7 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.06 0.06 1.4</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.08 0.5 0.2 1</ambient>
+            <diffuse>0.08 0.5 0.2 1</diffuse>
+          </material>
+        </visual>
+        <collision name="post_0_1_collision">
+          <pose>-0.65 0.25 0.7 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.06 0.06 1.4</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="post_0_1_visual">
+          <pose>-0.65 0.25 0.7 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.06 0.06 1.4</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.08 0.5 0.2 1</ambient>
+            <diffuse>0.08 0.5 0.2 1</diffuse>
+          </material>
+        </visual>
+        <collision name="post_1_0_collision">
+          <pose>0.65 -0.25 0.7 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.06 0.06 1.4</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="post_1_0_visual">
+          <pose>0.65 -0.25 0.7 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.06 0.06 1.4</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.08 0.5 0.2 1</ambient>
+            <diffuse>0.08 0.5 0.2 1</diffuse>
+          </material>
+        </visual>
+        <collision name="post_1_1_collision">
+          <pose>0.65 0.25 0.7 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.06 0.06 1.4</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="post_1_1_visual">
+          <pose>0.65 0.25 0.7 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.06 0.06 1.4</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.08 0.5 0.2 1</ambient>
+            <diffuse>0.08 0.5 0.2 1</diffuse>
+          </material>
+        </visual>
+        <collision name="shelf_0_collision">
+          <pose>0 0 0.12 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.4 0.6 0.06</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="shelf_0_visual">
+          <pose>0 0 0.12 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.4 0.6 0.06</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.12 0.65 0.25 1</ambient>
+            <diffuse>0.12 0.65 0.25 1</diffuse>
+          </material>
+        </visual>
+        <collision name="shelf_1_collision">
+          <pose>0 0 0.65 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.4 0.6 0.06</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="shelf_1_visual">
+          <pose>0 0 0.65 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.4 0.6 0.06</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.12 0.65 0.25 1</ambient>
+            <diffuse>0.12 0.65 0.25 1</diffuse>
+          </material>
+        </visual>
+        <collision name="shelf_2_collision">
+          <pose>0 0 1.18 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.4 0.6 0.06</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="shelf_2_visual">
+          <pose>0 0 1.18 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.4 0.6 0.06</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.12 0.65 0.25 1</ambient>
+            <diffuse>0.12 0.65 0.25 1</diffuse>
+          </material>
+        </visual>
+        <collision name="material_bin_0_collision">
+          <pose>-0.42 0 0.85 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.32 0.42 0.34</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="material_bin_0_visual">
+          <pose>-0.42 0 0.85 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.32 0.42 0.34</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.9 0.55 0.16 1</ambient>
+            <diffuse>0.9 0.55 0.16 1</diffuse>
+          </material>
+        </visual>
+        <collision name="material_bin_1_collision">
+          <pose>0 0 0.85 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.32 0.42 0.34</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="material_bin_1_visual">
+          <pose>0 0 0.85 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.32 0.42 0.34</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.9 0.55 0.16 1</ambient>
+            <diffuse>0.9 0.55 0.16 1</diffuse>
+          </material>
+        </visual>
+        <collision name="material_bin_2_collision">
+          <pose>0.42 0 0.85 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.32 0.42 0.34</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="material_bin_2_visual">
+          <pose>0.42 0 0.85 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.32 0.42 0.34</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.9 0.55 0.16 1</ambient>
+            <diffuse>0.9 0.55 0.16 1</diffuse>
+          </material>
+        </visual>
+        <collision name="green_header_collision">
+          <pose>0 0 1.48 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.5 0.08 0.24</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="green_header_visual">
+          <pose>0 0 1.48 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.5 0.08 0.24</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.1 0.85 0.28 1</ambient>
+            <diffuse>0.1 0.85 0.28 1</diffuse>
+          </material>
+        </visual>
+        <visual name="loading_zone_visual">
+          <pose>0 1.05 0.002 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>1.25 1.05 0.003</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.08 0.45 0.18 1</ambient>
+            <diffuse>0.08 0.45 0.18 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

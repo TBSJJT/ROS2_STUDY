@@ -1,0 +1,45 @@
+# 工位坐标均属于 map 坐标系：x/y 单位米，yaw 单位弧度。
+# 先将六台设备边界与 SLAM 占用栅格配准，再进行实际导航验收。
+# registration 只记录离线标定依据；运行时导航不读取 Gazebo 真值。
+# 修改地图图像或地图原点后必须重新标定，不能只修改下面的哈希绕过检查。
+version: 1
+frame_id: map
+map_yaml_sha256: 6ce1e35ee624696531934f032c4eeb0b06953e5c0b408caedf44c6d6e8e8b72a
+map_image_sha256: 89d3903b7f89fc9a009ea3fa4dae8d9e159a5f2f7331935082eee09b589ae5ff
+registration:
+  method: rigid fit of six equipment boundaries to occupied SLAM pixels
+  world_to_map:
+  - -1.4646642371006502
+  - -1.3632199614134821
+  - -0.013570761357407885
+  boundary_rms_m: 0.00870911926423583
+depot: depot
+stations:
+  depot:
+    x: 0.0556
+    y: 0.1163
+    yaw: -0.01357
+  S1:
+    x: 2.0554
+    y: 0.0891
+    yaw: 1.55723
+  S2:
+    x: 5.0551
+    y: 0.0484
+    yaw: 1.55723
+  S3:
+    x: 8.0548
+    y: 0.0077
+    yaw: 1.55723
+  S4:
+    x: 2.1504
+    y: 7.0885
+    yaw: -1.58437
+  S5:
+    x: 5.1501
+    y: 7.0478
+    yaw: -1.58437
+  S6:
+    x: 8.1498
+    y: 7.0071
+    yaw: -1.58437

@@ -1,0 +1,10 @@
+# 一批内工位不重复；最后返回 depot 由状态机自动追加。
+version: 1
+batch_id: workshop_short
+route: [S1, S3, S5]
+# 每站模拟卸货时间（ROS 秒）；暂停卸货时保留剩余值。
+service_sec: 5.0
+# 每次导航尝试的仿真时间上限；超时必须先取消旧目标。
+navigation_timeout_sec: 180.0
+# 首次失败后的额外尝试次数；失败不视为交付完成。
+max_retries: 1

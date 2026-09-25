@@ -1,0 +1,789 @@
+{
+  "status": "fixed_order_delivery_accepted",
+  "navigation": [
+    {
+      "source": "runs/validation_20260920T223258_123fa9",
+      "record": {
+        "error": null,
+        "results": [
+          {
+            "station": "S1",
+            "status": 4,
+            "elapsed_sim_sec": 27.6,
+            "xy_error": 0.07028305369119668,
+            "yaw_error": 0.0729454563604839,
+            "truth_pose": [
+              3.637033748287514,
+              1.4847320909603319,
+              1.4966688293916943
+            ],
+            "cmd_linear": 0.0,
+            "cmd_angular": 0.0,
+            "localization_xy_error": 0.15017662238272636,
+            "localization_yaw_error": 0.0011864756052295707
+          },
+          {
+            "station": "depot",
+            "status": 4,
+            "elapsed_sim_sec": 60.900000000000006,
+            "xy_error": 0.06241502466167714,
+            "yaw_error": 0.05819467916458097,
+            "truth_pose": [
+              1.4571347384241904,
+              1.6432543332682357,
+              0.037437492535495484
+            ],
+            "cmd_linear": 0.0,
+            "cmd_angular": 0.0,
+            "localization_xy_error": 0.18592127908517003,
+            "localization_yaw_error": 0.02075794798649337
+          },
+          {
+            "station": "S3",
+            "status": 4,
+            "elapsed_sim_sec": 68.00000000000001,
+            "xy_error": 0.07345380412698824,
+            "yaw_error": 0.07198969488224694,
+            "truth_pose": [
+              9.58105417122904,
+              1.4455513458281255,
+              1.4910757664633947
+            ],
+            "cmd_linear": 0.0,
+            "cmd_angular": 0.0,
+            "localization_xy_error": 0.1045257052498027,
+            "localization_yaw_error": 0.0077353000117661615
+          },
+          {
+            "station": "depot",
+            "status": 4,
+            "elapsed_sim_sec": 90.30000000000001,
+            "xy_error": 0.0704141950053666,
+            "yaw_error": 0.06736456491752468,
+            "truth_pose": [
+              1.4441790691767058,
+              1.6295036621718424,
+              0.04650801091514608
+            ],
+            "cmd_linear": 0.0,
+            "cmd_angular": 0.0,
+            "localization_xy_error": 0.17271507034627406,
+            "localization_yaw_error": 0.02085731535978648
+          }
+        ],
+        "truth_samples": 5015,
+        "collisions": [],
+        "wall_elapsed_sec": 251.174745926
+      },
+      "metadata": {
+        "arguments": {
+          "mode": "navigation",
+          "stations": "src/gasrobot_delivery/config/stations.yaml",
+          "route": [
+            "S1",
+            "depot",
+            "S3",
+            "depot"
+          ],
+          "repeat": 1,
+          "batch_file": null
+        },
+        "sha256": {
+          "src/gasrobot_delivery/config/stations.yaml": "79428b8bafb1e89dacf58c76e428e53e6e84aeed5beed85795b0b31fbe75fac3",
+          "src/gasrobot_delivery/config/nav2_workshop.yaml": "a32c6f788532b1d3e391bc630ba00f2aff02c6eeffa1019e23bd78f3354efb6e"
+        }
+      }
+    },
+    {
+      "source": "runs/validation_20260920T223807_0f8df9",
+      "record": {
+        "error": null,
+        "results": [
+          {
+            "station": "S2",
+            "status": 4,
+            "elapsed_sim_sec": 47.80000000000001,
+            "xy_error": 0.0664694315969833,
+            "yaw_error": 0.05020507416740161,
+            "truth_pose": [
+              6.619778626699317,
+              1.4686066501368733,
+              1.5133996002173065
+            ],
+            "cmd_linear": 0.0,
+            "cmd_angular": 0.0,
+            "localization_xy_error": 0.1337173321913876,
+            "localization_yaw_error": 0.0071960869726997055
+          },
+          {
+            "station": "depot",
+            "status": 4,
+            "elapsed_sim_sec": 83.70000000000005,
+            "xy_error": 0.07230450405674861,
+            "yaw_error": 0.05626401760033667,
+            "truth_pose": [
+              1.4539295575370887,
+              1.6587298099143413,
+              0.030563152121314
+            ],
+            "cmd_linear": 0.0,
+            "cmd_angular": 0.0,
+            "localization_xy_error": 0.20351894655614672,
+            "localization_yaw_error": 0.025701626836430555
+          },
+          {
+            "station": "S4",
+            "status": 4,
+            "elapsed_sim_sec": 85.39999999999992,
+            "xy_error": 0.07351131853046984,
+            "yaw_error": 0.04317239280821039,
+            "truth_pose": [
+              3.696759147628951,
+              8.597976598517969,
+              -1.5261593968330511
+            ],
+            "cmd_linear": 0.0,
+            "cmd_angular": 0.0,
+            "localization_xy_error": 0.19984644178982278,
+            "localization_yaw_error": 0.00146744900133065
+          },
+          {
+            "station": "depot",
+            "status": 4,
+            "elapsed_sim_sec": 89.90000000000009,
+            "xy_error": 0.06540431255035134,
+            "yaw_error": 0.05767428294347137,
+            "truth_pose": [
+              1.4671498665575642,
+              1.5235559826417622,
+              -0.05755660302584096
+            ],
+            "cmd_linear": 0.0,
+            "cmd_angular": 0.0,
+            "localization_xy_error": 0.032520648317222914,
+            "localization_yaw_error": 0.00011691856022253214
+          },
+          {
+            "station": "S5",
+            "status": 4,
+            "elapsed_sim_sec": 103.60000000000002,
+            "xy_error": 0.07554415840180227,
+            "yaw_error": 0.06519970567367217,
+            "truth_pose": [
+              6.671164676242345,
+              8.598728975782453,
+              -1.5033512596675287
+            ],
+            "cmd_linear": 0.0,
+            "cmd_angular": 0.0,
+            "localization_xy_error": 0.15094256976633869,
+            "localization_yaw_error": 0.0022482733013913063
+          },
+          {
+            "station": "depot",
+            "status": 4,
+            "elapsed_sim_sec": 107.69999999999993,
+            "xy_error": 0.0640921925310917,
+            "yaw_error": 0.06533652307319285,
+            "truth_pose": [
+              1.4734609495557687,
+              1.525984599402376,
+              -0.06387858072995913
+            ],
+            "cmd_linear": 0.0,
+            "cmd_angular": 0.0,
+            "localization_xy_error": 0.0275118520150919,
+            "localization_yaw_error": 0.0014571809858258226
+          },
+          {
+            "station": "S6",
+            "status": 4,
+            "elapsed_sim_sec": 123.30000000000007,
+            "xy_error": 0.0791098629022412,
+            "yaw_error": 0.06648280050487942,
+            "truth_pose": [
+              9.640909803533157,
+              8.609470452755295,
+              -1.5061285388130434
+            ],
+            "cmd_linear": 0.0,
+            "cmd_angular": 0.0,
+            "localization_xy_error": 0.13083987692959212,
+            "localization_yaw_error": 0.0018121006753306806
+          },
+          {
+            "station": "depot",
+            "status": 4,
+            "elapsed_sim_sec": 128.29999999999995,
+            "xy_error": 0.06840314323475764,
+            "yaw_error": 0.0677555600365986,
+            "truth_pose": [
+              1.4741776424361184,
+              1.52325991537976,
+              -0.06858615985345133
+            ],
+            "cmd_linear": 0.0,
+            "cmd_angular": 0.0,
+            "localization_xy_error": 0.03450476980347211,
+            "localization_yaw_error": 0.0008313611742606122
+          },
+          {
+            "station": "S1",
+            "status": 4,
+            "elapsed_sim_sec": 27.700000000000045,
+            "xy_error": 0.08011848346458031,
+            "yaw_error": 0.047620529655159505,
+            "truth_pose": [
+              3.6610833797906404,
+              1.4821197202368785,
+              1.5185119337247328
+            ],
+            "cmd_linear": 0.0,
+            "cmd_angular": 0.0,
+            "localization_xy_error": 0.18202959499284083,
+            "localization_yaw_error": 0.004668297977515463
+          },
+          {
+            "station": "S5",
+            "status": 4,
+            "elapsed_sim_sec": 121.40000000000009,
+            "xy_error": 0.07547984012100768,
+            "yaw_error": 0.051501282377665936,
+            "truth_pose": [
+              6.65717288105748,
+              8.592677472979856,
+              -1.515767171067962
+            ],
+            "cmd_linear": 0.0,
+            "cmd_angular": 0.0,
+            "localization_xy_error": 0.1373180619971547,
+            "localization_yaw_error": 0.0035307851969641306
+          },
+          {
+            "station": "depot",
+            "status": 4,
+            "elapsed_sim_sec": 114.0,
+            "xy_error": 0.04268626708815634,
+            "yaw_error": 0.06418943764848768,
+            "truth_pose": [
+              1.4914293742885258,
+              1.506916390536969,
+              -0.06313665534098878
+            ],
+            "cmd_linear": 0.0,
+            "cmd_angular": 0.0,
+            "localization_xy_error": 0.0323591971659277,
+            "localization_yaw_error": 0.001052020950091017
+          }
+        ],
+        "truth_samples": 20736,
+        "collisions": [],
+        "wall_elapsed_sec": 1038.220712716
+      },
+      "metadata": {
+        "arguments": {
+          "mode": "navigation",
+          "stations": "src/gasrobot_delivery/config/stations.yaml",
+          "route": [
+            "S2",
+            "depot",
+            "S4",
+            "depot",
+            "S5",
+            "depot",
+            "S6",
+            "depot",
+            "S1",
+            "S5",
+            "depot"
+          ],
+          "repeat": 1,
+          "batch_file": null
+        },
+        "sha256": {
+          "src/gasrobot_delivery/config/stations.yaml": "79428b8bafb1e89dacf58c76e428e53e6e84aeed5beed85795b0b31fbe75fac3",
+          "src/gasrobot_delivery/config/nav2_workshop.yaml": "a32c6f788532b1d3e391bc630ba00f2aff02c6eeffa1019e23bd78f3354efb6e"
+        }
+      }
+    }
+  ],
+  "controls": {
+    "source": "runs/validation_20260921T073808_d28070",
+    "record": {
+      "error": null,
+      "results": [
+        {
+          "control_check": "duplicate start / navigation pause-resume-cancel",
+          "passed": true
+        },
+        {
+          "station": "depot",
+          "status": 4,
+          "elapsed_sim_sec": 65.60000000000001,
+          "xy_error": 0.07927059793281309,
+          "yaw_error": 0.09179697379339055,
+          "truth_pose": [
+            1.4486917203925107,
+            1.6328750219474275,
+            0.06669015392794145
+          ],
+          "cmd_linear": 0.0,
+          "cmd_angular": 0.0,
+          "localization_xy_error": 0.18533386249552977,
+          "localization_yaw_error": 0.02510758122285699
+        },
+        {
+          "control_check": "service pause / Gazebo clock pause / completion after service",
+          "passed": true
+        },
+        {
+          "station": "depot",
+          "status": 4,
+          "elapsed_sim_sec": 66.70000000000002,
+          "xy_error": 0.059571191281468976,
+          "yaw_error": 0.07349140511382454,
+          "truth_pose": [
+            1.4623284652392348,
+            1.6530118017690094,
+            0.045859054660097875
+          ],
+          "cmd_linear": 0.0,
+          "cmd_angular": 0.0,
+          "localization_xy_error": 0.1981679558445934,
+          "localization_yaw_error": 0.027633111811134557
+        }
+      ],
+      "truth_samples": 3633,
+      "collisions": [],
+      "wall_elapsed_sec": 185.96707396800002
+    }
+  },
+  "protocol": {
+    "source": "runs/protocol_20260921T073849/protocol_result.json",
+    "record": {
+      "passed": [
+        "delayed acceptance / duplicate start / navigation pause-resume-cancel",
+        "service pause preserves remaining / short batch and return",
+        "unreachable retries exactly once and fails without false delivery"
+      ],
+      "max_active_goals": 1
+    }
+  },
+  "topic_chain": {
+    "/cmd_vel": {
+      "publishers": [
+        "velocity_smoother"
+      ],
+      "subscribers": [
+        "delivery_acceptance",
+        "diff_drive_controller"
+      ]
+    },
+    "/cmd_vel_nav": {
+      "publishers": [
+        "controller_server",
+        "behavior_server",
+        "behavior_server",
+        "behavior_server",
+        "behavior_server",
+        "behavior_server"
+      ],
+      "subscribers": [
+        "velocity_smoother"
+      ]
+    },
+    "/scan": {
+      "publishers": [
+        "gazebo_ros_laser"
+      ],
+      "subscribers": [
+        "amcl",
+        "local_costmap",
+        "global_costmap"
+      ]
+    },
+    "/odom": {
+      "publishers": [
+        "diff_drive_controller"
+      ],
+      "subscribers": [
+        "controller_server",
+        "bt_navigator",
+        "delivery_manager"
+      ]
+    },
+    "/tf": {
+      "publishers": [
+        "amcl",
+        "robot_state_publisher",
+        "diff_drive_controller"
+      ],
+      "subscribers": [
+        "transform_listener_impl_5d1f711aaa40",
+        "transform_listener_impl_5bd8751887b0",
+        "transform_listener_impl_647d687f93f0",
+        "transform_listener_impl_5c365db2f3b0",
+        "transform_listener_impl_5c17e024f380",
+        "delivery_acceptance",
+        "bt_navigator",
+        "delivery_manager"
+      ]
+    }
+  },
+  "short_batch": {
+    "source": "runs/validation_20260921T074235_cd0597",
+    "record": {
+      "error": null,
+      "results": [
+        {
+          "state": "COMPLETED",
+          "batch_id": "workshop_short",
+          "target": "depot",
+          "completed": [
+            "S1",
+            "S3",
+            "S5"
+          ],
+          "navigation_pending": false,
+          "service_remaining_sec": 0,
+          "run_dir": "/home/iceice/ROS_Project/study/ros_ws/runs/20260920T234245_3da77ba4",
+          "map_pose": [
+            0.010537193779399878,
+            0.14931375087068388,
+            -0.06516326426071509
+          ],
+          "ros_time": 341.90000000000003,
+          "truth_pose": [
+            1.4758516951811926,
+            1.5120776949843344,
+            -0.04826661018266084
+          ],
+          "log_audit": {
+            "summary": {
+              "batch_id": "workshop_short",
+              "state": "COMPLETED",
+              "success": true,
+              "completed_stations": [
+                "S1",
+                "S3",
+                "S5"
+              ],
+              "elapsed_sec": 327.00000000000006,
+              "odom_distance_m": 32.617229329512696,
+              "returned_to_depot": true
+            },
+            "service_durations_sec": [
+              5.0,
+              5.0,
+              5.000000000000028
+            ],
+            "retries": 0
+          }
+        }
+      ],
+      "truth_samples": 6777,
+      "collisions": [],
+      "wall_elapsed_sec": 339.6942066890001
+    }
+  },
+  "full_batches": {
+    "source": "runs/validation_20260921T074839_15723f",
+    "record": {
+      "error": null,
+      "results": [
+        {
+          "state": "COMPLETED",
+          "batch_id": "workshop_full",
+          "target": "depot",
+          "completed": [
+            "S1",
+            "S2",
+            "S3",
+            "S6",
+            "S5",
+            "S4"
+          ],
+          "navigation_pending": false,
+          "service_remaining_sec": 0,
+          "run_dir": "/home/iceice/ROS_Project/study/ros_ws/runs/20260920T234843_417f727b",
+          "map_pose": [
+            0.01112728656756512,
+            0.13543615079680293,
+            -0.08157333742188265
+          ],
+          "ros_time": 791.5,
+          "truth_pose": [
+            1.4803489736714295,
+            1.5058214843553308,
+            -0.064954220834765
+          ],
+          "log_audit": {
+            "summary": {
+              "batch_id": "workshop_full",
+              "state": "COMPLETED",
+              "success": true,
+              "completed_stations": [
+                "S1",
+                "S2",
+                "S3",
+                "S6",
+                "S5",
+                "S4"
+              ],
+              "elapsed_sec": 419.3,
+              "odom_distance_m": 32.66380265677684,
+              "returned_to_depot": true
+            },
+            "service_durations_sec": [
+              5.0,
+              5.0,
+              5.0,
+              5.0,
+              5.0,
+              5.0
+            ],
+            "retries": 0
+          }
+        },
+        {
+          "state": "COMPLETED",
+          "batch_id": "workshop_full",
+          "target": "depot",
+          "completed": [
+            "S1",
+            "S2",
+            "S3",
+            "S6",
+            "S5",
+            "S4"
+          ],
+          "navigation_pending": false,
+          "service_remaining_sec": 0,
+          "run_dir": "/home/iceice/ROS_Project/study/ros_ws/runs/20260920T235545_d5485146",
+          "map_pose": [
+            0.0036706309467536835,
+            0.158801915692397,
+            -0.06893660236495251
+          ],
+          "ros_time": 1214.1000000000001,
+          "truth_pose": [
+            1.4735842764497664,
+            1.5141373112613372,
+            -0.053363208644122834
+          ],
+          "log_audit": {
+            "summary": {
+              "batch_id": "workshop_full",
+              "state": "COMPLETED",
+              "success": true,
+              "completed_stations": [
+                "S1",
+                "S2",
+                "S3",
+                "S6",
+                "S5",
+                "S4"
+              ],
+              "elapsed_sec": 420.20000000000005,
+              "odom_distance_m": 32.69036260071337,
+              "returned_to_depot": true
+            },
+            "service_durations_sec": [
+              5.0,
+              5.0,
+              5.0,
+              5.0,
+              5.0,
+              5.0
+            ],
+            "retries": 0
+          }
+        },
+        {
+          "state": "COMPLETED",
+          "batch_id": "workshop_full",
+          "target": "depot",
+          "completed": [
+            "S1",
+            "S2",
+            "S3",
+            "S6",
+            "S5",
+            "S4"
+          ],
+          "navigation_pending": false,
+          "service_remaining_sec": 0,
+          "run_dir": "/home/iceice/ROS_Project/study/ros_ws/runs/20260921T125355_a67ce6a2",
+          "map_pose": [
+            0.011669902634201534,
+            0.15261624580893862,
+            -0.07199057616181652
+          ],
+          "ros_time": 1647.1000000000001,
+          "truth_pose": [
+            1.4764338265327333,
+            1.5172464385873856,
+            -0.059379322486960304
+          ],
+          "log_audit": {
+            "summary": {
+              "batch_id": "workshop_full",
+              "state": "COMPLETED",
+              "success": true,
+              "completed_stations": [
+                "S1",
+                "S2",
+                "S3",
+                "S6",
+                "S5",
+                "S4"
+              ],
+              "elapsed_sec": 430.70000000000005,
+              "odom_distance_m": 32.70930699674456,
+              "returned_to_depot": true
+            },
+            "service_durations_sec": [
+              5.0,
+              5.0,
+              5.0,
+              5.0,
+              5.0,
+              5.0
+            ],
+            "retries": 0
+          }
+        }
+      ],
+      "truth_samples": 25624,
+      "collisions": [],
+      "wall_elapsed_sec": 1284.3192814610002
+    },
+    "identical_configuration_snapshots": true,
+    "configuration_sha256": {
+      "stations.yaml": "79428b8bafb1e89dacf58c76e428e53e6e84aeed5beed85795b0b31fbe75fac3",
+      "batch.yaml": "cb53abc501554fcbf56b28bf671ba65fd253ff09d996bfdfbf9d7e613434c73c",
+      "map.yaml": "6ce1e35ee624696531934f032c4eeb0b06953e5c0b408caedf44c6d6e8e8b72a",
+      "nav2_params.yaml": "a32c6f788532b1d3e391bc630ba00f2aff02c6eeffa1019e23bd78f3354efb6e",
+      "simulation_workshop_delivery_v1.world": "b367a4dd5c953decd17265bf39ce24267cd7c83c8b8490b5954e87f6f60b0930",
+      "simulation_gasrobot_ros2_controller.yaml": "2c1f54d5263a0254bcaf0b0f7592eea17f41533139e6ed1dca3fb52d1b437dd8",
+      "simulation_wheel.urdf.xacro": "40bfe2286dbc5e2fe940b9734c8da801f659d8dcd1dd94e170b3aa99d2f7b681",
+      "simulation_gasrobot_ros2_control.xacro": "3f142126a8610d15431561953552e658d06a3279714680c2f598d5575dcef4be",
+      "workshop_delivery_v1.pgm": "89d3903b7f89fc9a009ea3fa4dae8d9e159a5f2f7331935082eee09b589ae5ff"
+    },
+    "arrival_checks": [
+      {
+        "nav_status": 4,
+        "xy_error": 0.07871331938820636,
+        "yaw_error": 0.059379209815492606
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.0681441839624442,
+        "yaw_error": 0.06097200745387687
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.07061902316260123,
+        "yaw_error": 0.06381839631731556
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.07502941629905374,
+        "yaw_error": 0.05301225642255103
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.063927527565185,
+        "yaw_error": 0.05812696491144376
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.06868685222718014,
+        "yaw_error": 0.0643764413103105
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.04623994646736448,
+        "yaw_error": 0.06450587695031175
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.07607129573463586,
+        "yaw_error": 0.04547698327301596
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.06852154240181951,
+        "yaw_error": 0.050521745977221366
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.06924829677180985,
+        "yaw_error": 0.05338983311648149
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.07476913797882336,
+        "yaw_error": 0.03242212945822498
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.06196335322174258,
+        "yaw_error": 0.05462530534159038
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.0640049348129501,
+        "yaw_error": 0.041117097518059476
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.06231411521505912,
+        "yaw_error": 0.0473463482051658
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.07830977879815837,
+        "yaw_error": 0.03319126461629307
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.06994977879837991,
+        "yaw_error": 0.04605205177835115
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.07171539593766438,
+        "yaw_error": 0.038789821532066115
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.07595586377110401,
+        "yaw_error": 0.03473329424314864
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.04420814137849165,
+        "yaw_error": 0.03957641002066081
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.06387227246918968,
+        "yaw_error": 0.05086445041643395
+      },
+      {
+        "nav_status": 4,
+        "xy_error": 0.053576125937393505,
+        "yaw_error": 0.054302964986399624
+      }
+    ]
+  },
+  "validation_environment": {
+    "ROS": "Humble",
+    "Gazebo": "Classic 11.10.2",
+    "GUI": false,
+    "ROS_LOCALHOST_ONLY": "1",
+    "clock": "ROS simulation time",
+    "pytest_cases": 25
+  }
+}

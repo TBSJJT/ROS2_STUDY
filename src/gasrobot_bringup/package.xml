@@ -10,6 +10,10 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <exec_depend>gasrobot_base</exec_depend>
+  <exec_depend>gasrobot_simulation</exec_depend>
+  <exec_depend>gasrobot_delivery</exec_depend>
+  <exec_depend>nav2_common</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
   <exec_depend>gasrobot_description</exec_depend>
   <exec_depend>gasrobot_gas</exec_depend>
   <exec_depend>gasrobot_gas_mapping</exec_depend>
