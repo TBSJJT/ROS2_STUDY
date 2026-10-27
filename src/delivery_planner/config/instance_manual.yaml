@@ -1,0 +1,13 @@
+# 可手动编辑。单位均为秒，due_sec 从本批出发时刻起算，完成卸货后才算交付。
+# 下列截止时间只是用于演示计算接口的人工示例，不是生产需求或论文实验实例。
+# 修改此文件不会改变当前固定顺序配送管理器；本阶段先用于离线目标评价。
+version: 1
+instance_id: manual_demo
+data_source: illustrative_manual_values_not_production_deadlines
+tasks:
+  S1: {due_sec: 60.0, service_sec: 5.0}
+  S2: {due_sec: 120.0, service_sec: 5.0}
+  S3: {due_sec: 180.0, service_sec: 5.0}
+  S4: {due_sec: 360.0, service_sec: 5.0}
+  S5: {due_sec: 300.0, service_sec: 5.0}
+  S6: {due_sec: 240.0, service_sec: 5.0}

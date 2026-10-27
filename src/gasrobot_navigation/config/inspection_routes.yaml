@@ -1,7 +1,0 @@
-# 旧 PicoPC 巡检坐标已清理；尚未标定新场地，不可直接启动巡检。
-# 如需恢复巡检，请配置 map 坐标下的路线并完成验证后设置 site_configured: true。
-# Gazebo world 中的工位候选坐标不可直接作为 SLAM map 导航目标。
-version: 1
-frame_id: map
-site_configured: false
-routes: {}

@@ -1,139 +1,203 @@
-# 车间多工位配送仿真工作空间
+# 车间多工位配送机器人
 
-本工程使用 **ROS 2 Humble + Gazebo Classic 11**。当前主线是单机器人车间配送：
-六台设备分为两排，每排三台，配套六个工位和一个物料站。
-已完成场景、实际 SLAM 建图、AMCL 定位、Nav2 导航和固定顺序配送闭环。
-软件包继续使用现有 `gasrobot_` 前缀；当前说明以车间配送仿真为准。
+基于 ROS 2 Humble、Gazebo Classic 的单机器人车间配送工程，保留 STM32 底盘、
+IMU 和真实激光雷达接入能力。场景包含一个物料站、两排六台设备与六个工位；
+现有功能为建图、定位导航、固定顺序配送、任务控制、真实轨迹记录及静态规划距离矩阵。
 
-## 本次完成了什么
+工程统一使用 `delivery_*` ROS 包名，气体检测接口和旧巡检实现已移除。
+现已进入点间代价阶段：实现 Nav2 静态有向距离矩阵、独立时间采样工具、可编辑截止时间
+与精确枚举目标模型。NSGA-II 尚未实现；时间缓存是否可用取决于实际标定完整性。
+资料、历史实验记录和地图内容保持原样；
+历史资料内的旧命令仅代表当时版本，当前命令以本 README 和各包 README 为准。
 
-| 部分 | 实现与文件 | 验证情况 |
-|---|---|---|
-| 车间场景 | [workshop_delivery_v1.world](src/gasrobot_simulation/worlds/workshop_delivery_v1.world)，含六设备、六工位标记及物料架 | 场景加载、通行验证完成 |
-| 环境地图 | [workshop_delivery_v1.yaml](src/gasrobot_gas_mapping/maps/workshop_delivery_v1.yaml) 及同名 PGM | 实际 SLAM 建图，地图重载通过 |
-| 统一启动 | [delivery_sim.launch.py](src/gasrobot_bringup/launch/delivery_sim.launch.py) | Gazebo、AMCL、Nav2 和配送节点正常运行 |
-| 工位标定 | [stations.yaml](src/gasrobot_delivery/config/stations.yaml) | map 坐标标定，地图哈希/净空校验，六工位往返及跨排通过 |
-| 配送执行 | [gasrobot_delivery](src/gasrobot_delivery/README.md) | 开始、暂停、继续、取消、超时重试、卸货等待和回程闭环 |
-| 运动修正 | 车轮惯量轴、接触摩擦、仿真专用 RPP 和障碍膨胀参数 | 修复转向停滞及设备边缘通行失败后重新验收 |
-| 工程整理 | 配置校验、中文注释、配送文档及运行日志 | 运行记录放在 `runs/`，验收摘要保存在配送包 `docs/` |
+## 当前包结构
 
-无窗口 Gazebo 实测结果：短路线成功；完整六工位路线连续 **3 批成功**，
-耗时分别为 **419.3、420.2、430.7 ROS 秒**，零重试、无人工接管，未检测到碰撞。
-18 次卸货等待均为 5 秒；25 项配置/状态机测试通过。
+| 包 | 职责 |
+|---|---|
+| [delivery_bringup](src/delivery_bringup/README.md) | 仿真配送与实车组合启动 |
+| [delivery_description](src/delivery_description/README.md) | 共用 URDF/Xacro、传感器和车轮模型 |
+| [delivery_simulation](src/delivery_simulation/README.md) | Gazebo 场景、仿真控制器、机器人生成 |
+| [delivery_mapping](src/delivery_mapping/README.md) | SLAM 参数和已保存地图 |
+| [delivery_navigation](src/delivery_navigation/README.md) | 通用 Nav2 启动与实车导航参数 |
+| [delivery_tasks](src/delivery_tasks/README.md) | 工位、批次、配送状态机、日志、截图和验收工具 |
+| [delivery_planner](src/delivery_planner/README.md) | 有向距离矩阵、独立时间标定、可编辑迟交模型与精确枚举 |
+| [delivery_base](src/delivery_base/README.md) | STM32 串口协议、底盘速度、里程计和 IMU |
+| `src/vendor/lslidar_driver`、`lslidar_msgs` | 原有真实雷达驱动和消息，保持上游包名 |
 
-[完整验收记录与限制](src/gasrobot_delivery/docs/acceptance.md) ·
-[机器可读结果](src/gasrobot_delivery/docs/acceptance_results.json) ·
-[三批轨迹图](src/gasrobot_delivery/docs/delivery_trajectories.png)
+## 编译与环境
 
-## 启动车间配送
-
-在本工作空间根目录执行：
+迁移后请使用新终端，避免沿用旧安装目录的环境变量。本轮旧 `build/` 和 `install/`
+已移至 `runs/restructure_20261011/previous_build`、`previous_install`，当前安装为重新构建。
+不要 source 这些旧缓存中的 setup 文件。
 
 ```bash
 cd /home/iceice/ROS_Project/study/ros_ws
 source /opt/ros/humble/setup.bash
-colcon build --packages-up-to gasrobot_bringup --symlink-install
+colcon build --symlink-install
 source install/setup.bash
-ros2 launch gasrobot_bringup delivery_sim.launch.py
 ```
 
-系统加载现有车间地图，机器人出生在物料站，默认自动初始化 AMCL。
-启动后保持待命，**不会自动配送**。无窗口运行时追加 `gui:=false rviz:=false`。
-修改 Python、Launch、配置或模型后应重新编译；模型及启动参数修改后重启系统。
+同一次运行的终端使用一致的 `ROS_DOMAIN_ID` 与 `ROS_LOCALHOST_ONLY`。
+旧包名不再提供兼容别名，所有启动命令使用下面的新名称。
 
-另开终端，加载环境后确认装货并开始：
+## 仿真配送
 
 ```bash
-cd /home/iceice/ROS_Project/study/ros_ws
-source /opt/ros/humble/setup.bash
-source install/setup.bash
+ros2 launch delivery_bringup delivery_sim.launch.py
+# 无窗口运行：在上述命令后追加 gui:=false rviz:=false
+```
+
+该入口加载车间地图和物料站出生位姿，启动 AMCL/Nav2，保持待命而不自动配送。
+另开终端并加载 ROS 与工作空间环境后：
+
+```bash
+ros2 lifecycle get /bt_navigator
+# 确认 active，且机器人在物料站停车后，开始任务表示装货已确认。
 ros2 service call /delivery_manager/start std_srvs/srv/Trigger '{}'
-```
-
-默认完整路线：`物料站 → S1 → S2 → S3 → S6 → S5 → S4 → 物料站`。
-每站到达并停车后卸货 5 秒，返回物料站成功才将整批标记为完成。
-任务执行期间由配送节点独占导航目标，不同时用键盘或 RViz 发送运动命令。
-
-```bash
-# 查看状态；该话题内容为 JSON 字符串。
 ros2 topic echo /delivery_manager/status
-# 暂停、继续、取消。
+
+# 按需执行，而非顺序全部调用：
 ros2 service call /delivery_manager/pause std_srvs/srv/Trigger '{}'
 ros2 service call /delivery_manager/resume std_srvs/srv/Trigger '{}'
 ros2 service call /delivery_manager/cancel std_srvs/srv/Trigger '{}'
 ```
 
-暂停导航先取消旧目标，状态变为 PAUSED 后才能继续；暂停卸货保留剩余服务时间。
-取消后等待 CANCELLED 确认停车。导航单次超时 180 ROS 秒，失败最多重试 1 次，
-仍失败则终止任务。Gazebo 暂停时任务计时停止；重启节点不会自动续跑。
-短路线、批次切换、参数和日志格式见 [配送包操作说明](src/gasrobot_delivery/README.md)。
+固定顺序为 `depot → S1 → S2 → S3 → S6 → S5 → S4 → depot`，每站卸货 5 秒。
+导航超时默认 180 ROS 秒，最多重试一次；返回物料站成功才完成整批。
+地图、工位、批次及仿真专用导航数值参数沿用此前已验证配置。
 
-## 三个启动入口的区别
-
-| 入口 | 用途 | 是否启动定位/配送 |
-|---|---|---|
-| `gasrobot_bringup delivery_sim.launch.py` | 完整车间配送演示 | AMCL + Nav2 + 配送节点，等待显式开始 |
-| `gasrobot_simulation workshop_delivery.launch.py` | 只查看车间、手动驾驶或配合独立建图入口 | 只启动仿真、机器人和控制器 |
-| `gasrobot_simulation gazebo_sim.launch.py` | 通用仿真，默认旧 `L_model.world`，可指定 world | 只启动仿真、机器人和控制器 |
-
-定位模式不同时启动 SLAM。重新建图的方法及已有地图来源见
-[建图说明](src/gasrobot_gas_mapping/README.md) 和
-[车间建图记录](src/gasrobot_gas_mapping/docs/workshop_delivery_v1_mapping.md)。
-
-## 配置、坐标系与运动链路
-
-- `stations.yaml` 保存 **map** 坐标和固定朝向，不直接使用 Gazebo 的 world 坐标。
-- `batch.yaml` 保存工位顺序、服务时间、导航超时和重试次数；回程由执行器追加。
-- `nav2_workshop.yaml` 保存独立仿真参数，采用 Navfn + RPP。
-- 更换地图或出生点时，关闭自动初始定位并重新核对工位标定；不能只修改地图哈希绕过校验。
-
-TF 为 `map → odom → base_footprint`：AMCL 发布前一段，差速控制器发布后一段。
-`odom` 原点不需要跟着机器人移动；机器人在 odom 中的位姿会随行驶改变。
-判断定位是否异常应结合激光/地图、TF 连续性及位姿误差。
-
-速度链路为 `Nav2 控制器/恢复行为 → /cmd_vel_nav → velocity_smoother → /cmd_vel → 差速控制器`。
-全部参与仿真的节点使用仿真时间。Gazebo 真值仅用于验收，不参与配送控制。
-
-## 代码阅读顺序
-
-1. [场景与基础启动](src/gasrobot_simulation/README.md)：了解 world、出生位姿、模型生成和控制器加载顺序。
-2. [车轮模型](src/gasrobot_description/urdf/gasrobot/wheel/wheel.urdf.xacro)：了解轮轴、惯量及接触摩擦方向。
-3. [统一启动](src/gasrobot_bringup/launch/delivery_sim.launch.py)：了解仿真、定位、导航和任务层的组合。
-4. [配置校验](src/gasrobot_delivery/gasrobot_delivery/config.py)：了解地图绑定、净空及任务合法性检查。
-5. [状态机](src/gasrobot_delivery/gasrobot_delivery/engine.py)：了解到站/卸货完成的区别和取消屏障。
-6. [ROS 适配层](src/gasrobot_delivery/gasrobot_delivery/manager.py)：了解 Action 异步回调、服务、停车确认和工位可视化。
-7. [运行记录](src/gasrobot_delivery/gasrobot_delivery/logger.py)：了解配置快照、事件、轨迹和终态汇总。
-8. [验收脚本](src/gasrobot_delivery/scripts/validate_sim.py)：了解真实仿真导航、异常操作及批次验收。
-
-## 结果与测试
-
-每批独立保存在 `runs/`：配置快照、`events.csv`、`trajectory.csv`、`summary.json`。
-该目录已加入 `.gitignore`；关键验收结果与轨迹图保存在配送包 `docs/` 中。
+只加载场景与机器人：
 
 ```bash
-colcon test --packages-select gasrobot_delivery
-colcon test-result --test-result-base build/gasrobot_delivery --verbose
+ros2 launch delivery_simulation workshop_delivery.launch.py
 ```
 
-完整仿真验收命令见 [配送包 README](src/gasrobot_delivery/README.md#验证)。
-0.10 m / 0.10 rad 是停车后的 **map 估计位姿**容差，不代表真实装卸精度；
-实际定位差异、GUI 复测范围和协议测试边界见验收记录。
+建图时，在基础场景启动后另开终端运行：
 
-2026-09-22 再次完成一批实际配送，并记录七段行程各自的**途中截图**。
-整批轨迹由 8,479 条 Gazebo 真值采样分成七段后依次合并，合并 CSV 与原始 CSV 的
-SHA256 完全一致；RViz 也实时显示累计真值轨迹。耗时 423.3 ROS 秒，零重试。
-[最新截图、逐段图与来源校验](artifacts/workshop_delivery_gui_20260922/README.md) ·
-[最新完整素材 ZIP](artifacts/workshop_delivery_gui_20260922.zip) ·
-[完成时的实际累计轨迹截图](artifacts/workshop_delivery_gui_20260922/14_completed.png)
+```bash
+ros2 launch delivery_mapping mapping.launch.py use_sim_time:=true
+```
 
-2026-09-21 补做一批 GUI 完整配送：431.5 ROS 秒、32.71 m、零重试；
-保存 15 张同时包含 RViz 和 Gazebo 的 1920×1080 原始截图。
-[截图索引与图注](artifacts/workshop_delivery_gui_20260921/README.md) ·
-[完整素材 ZIP](artifacts/workshop_delivery_gui_20260921.zip) ·
-[自动截图脚本](src/gasrobot_delivery/scripts/capture_delivery.py)
+建图入口不与定位配送入口同时运行，避免两者争用 `map → odom`。
 
-## 后续阶段
+## 静态规划距离矩阵
 
-- [导航说明](src/gasrobot_navigation/README.md) · [建图说明](src/gasrobot_gas_mapping/README.md) · [启动包](src/gasrobot_bringup/README.md)。
-- 下一阶段依次建立 7×7 点间代价矩阵、距离/累计迟交模型、基线算法及 NSGA-II 对比实验。
-- 多机器人、动态插单、机械臂装卸未在本轮实现。
+```bash
+# 新增包需要先构建，再 source install/setup.bash。
+colcon build --symlink-install --packages-up-to delivery_planner
+source install/setup.bash
+ros2 launch delivery_planner cost_matrix.launch.py
+```
+
+无需启动 Gazebo，工具使用隔离的 Nav2 地图服务器和规划器，计算物料站及六工位的
+42 个有向点对。输出在 `runs/cost_matrix_*/`，包含原始规划路径、米制距离表、
+实际代价栅格、输入快照和哈希。采集结束自动关闭专用节点。
+这些是规划路径，不能当作实际行驶轨迹；时间矩阵暂为空。
+原配送导航仍使用实时激光障碍层，本静态距离模型只使用保存地图和膨胀层。
+详细缓存定义、使用边界和下一阶段说明见 [规划包 README](src/delivery_planner/README.md)。
+
+## 时间标定与离线目标模型
+
+```bash
+# 使用已有距离归档；默认五次短路线往返，自动启动并关闭独立仿真。
+ros2 launch delivery_planner calibration_sim.launch.py \
+  distance_file:=/绝对路径/距离归档/matrix.json pilot:=true
+# 完整42个有向点对各五次：去掉 pilot:=true。不要与已有仿真同时启动。
+```
+
+截止时间和卸货时间在 `src/delivery_planner/config/instance_manual.yaml` 中逐工位编辑。
+其中数值只是演示；该配置目前用于离线评价，不修改配送执行器现有批次。
+完整时间缓存生成后，可用 `evaluate_routes.py` 枚举六工位全部720种顺序，
+计算包含回程的距离、完成卸货后的累计迟交和精确Pareto集合。
+采样失败和不足次数的结果会保留，但评价器拒绝将其当作完整时间矩阵。
+操作与口径见 [规划包说明](src/delivery_planner/README.md)。
+
+## 保留的实车入口
+
+根据实际串口、雷达网络和地图设置参数；本轮整理不代表进行了真实硬件验证。
+
+```bash
+# 仅启动底盘和雷达，首次检查底盘可按需加 enable_lidar:=false。
+ros2 launch delivery_bringup hardware.launch.py serial_port:=/dev/ttyUSB0
+
+# 三选一：实车模型+硬件，或在此基础上建图、定位导航。
+ros2 launch delivery_bringup delivery_robot.launch.py mode:=hardware
+ros2 launch delivery_bringup delivery_robot.launch.py mode:=slam
+ros2 launch delivery_bringup delivery_robot.launch.py mode:=nav map:=/绝对路径/实车地图.yaml
+```
+
+`hardware.launch.py` 与 `delivery_robot.launch.py` 不同时启动，后者已包含硬件。
+实车组合入口默认 `use_sim_time:=false`，不加载 Gazebo 或旧巡检任务。
+实车导航使用 `delivery_navigation/config/nav2_params.yaml`；仿真配送使用
+`delivery_tasks/config/nav2_workshop.yaml`，两套参数分别维护。
+实车工位尚需按实际地图重新标定，不能直接照搬仿真工位执行配送。
+
+## 轨迹与验证工具
+
+工具既可从 `src/delivery_tasks/scripts/` 运行，也已安装为 `ros2 run` 入口。
+
+```bash
+# 在开始新批次前记录；需同屏摆放 RViz/Gazebo，输出目录必须为空。
+ros2 run delivery_tasks record_delivery_evidence.py --output runs/新的截图目录
+
+# 在独占仿真任务的终端中执行一批完整配送。
+ros2 run delivery_tasks validate_sim.py --mode batch --repeat 1
+
+# 等待记录结束后，按七段实际采样融合轨迹。
+ros2 run delivery_tasks plot_delivery_evidence.py runs/新的截图目录
+```
+
+Gazebo 实体名称已统一为 `delivery_robot`，验收和截图订阅代码同步迁移。
+控制接口 `/cmd_vel`、`/odom`、`/scan`、`/delivery_manager/*` 和 TF 名称保持不变。
+真值仅用于记录和评估，不参与导航控制。详细说明见配送包 README。
+
+## 关闭与重复启动
+
+在启动 launch 的终端按 Ctrl+C 并等待子进程退出，再重新启动。
+仅关闭 Gazebo/RViz 窗口可能留下后台 `gzserver`。
+若提示 `Address already in use`，先检查旧仿真；不要重复启动第二套系统。
+`Nav2 lifecycle is not active` 时先检查 Gazebo、控制器、`odom` TF 和生命周期，
+不要通过删除任务就绪检查绕过问题。
+
+## 改名对应表
+
+| 原包 | 当前包 |
+|---|---|
+| `gasrobot_base` | `delivery_base` |
+| `gasrobot_bringup` | `delivery_bringup` |
+| `gasrobot_description` | `delivery_description` |
+| `gasrobot_simulation` | `delivery_simulation` |
+| `gasrobot_gas_mapping` | `delivery_mapping` |
+| `gasrobot_navigation` | `delivery_navigation` |
+| `gasrobot_delivery` | `delivery_tasks` |
+
+`gasrobot_gas`、`gasrobot_interfaces` 已删除；后者仅包含气体和旧巡检自定义接口。
+当前配送使用 Nav2 和标准 ROS 消息/服务。历史实验资料未重新编写或冒充本轮测试。
+
+## 本轮工程迁移验证（2026-10-11）
+
+- 9 个包全新编译通过；最终 7 个业务包再次构建通过。
+- 48 项底盘/配送功能单元测试通过；配送包 colcon 测试为 26 项、零失败。
+- 配送异步协议测试通过：重复开始、暂停继续、取消、卸货暂停、失败重试。
+- 新命令实际完成 `depot → S1 → depot`，两次导航成功且停车；未检测到障碍重叠。
+- 96 个资料、地图、第三方驱动文件哈希未变；六份关键配置解析后的数值未变。
+- 实车只验证构建、模型展开和启动参数，未连接设备实测；本轮未重跑完整三批配送。
+- 详细日志与文件迁移清单位于 `runs/restructure_20261011/`。
+
+当前用户环境已补装 `pyserial 3.5`，包清单仍声明系统依赖 `python3-serial`。
+雷达驱动构建提示 pcap 文件 I/O 未启用；未为本轮改名修改其源码或第三方依赖配置。
+
+## 点间距离阶段验证（2026-10-11）
+
+新增 `delivery_planner`，当前共有 10 个 ROS 包（含两个原有雷达包）。
+新包及依赖构建通过，矩阵与配送功能测试共 36 项通过。
+两次独立启动 Nav2，均完成 42 个有向点对，原始规划路径和距离矩阵完全一致。
+结果保存在 `runs/cost_matrix_validation_20261011/`，未进行车辆行驶或时间标定。
+后续独立时间标定、可编辑截止时间及迟交模型的实现与实测进展见规划包 README。
+
+## 冻结实验输入协议（2026-10-27）
+
+优化读取冻结的规划距离、独立标定时间和任务实例；实际导航数据只用于验证。
+每对距离重复规划三次，正式时间标定默认五次，报告P95、成功率与样本数。
+冻结工具拒绝失败或不完整矩阵；当前完整时间采集仍保留S6→S1超时，尚不能发布。
+详见 [T4修订、统计边界与运行命令](src/delivery_planner/EXPERIMENT_PROTOCOL.md)。
